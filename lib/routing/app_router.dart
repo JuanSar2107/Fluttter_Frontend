@@ -7,7 +7,7 @@ import '../features/auth/presentation/providers/auth_providers.dart';
 import '../features/auth/presentation/screens/login_screen.dart';
 import '../features/auth/presentation/screens/session_error_screen.dart';
 import '../features/auth/presentation/screens/splash_screen.dart';
-import '../features/home/presentation/screens/home_screen.dart';
+import '../features/dashboard/presentation/screens/dashboard_screen.dart';
 
 /// Rutas de la aplicacion.
 ///
@@ -17,7 +17,7 @@ class AppRoutes {
 
   static const String splash = '/';
   static const String login = '/login';
-  static const String home = '/home';
+  static const String dashboard = '/dashboard';
 
   /// Ruta de error al restaurar la sesion.
   ///
@@ -65,8 +65,8 @@ final Provider<GoRouter> appRouterProvider = Provider<GoRouter>(
         // se redirige. Sin esta rama, un usuario con sesion restaurada se
         // quedaria atrapado viendo "Restaurando sesion..." para siempre.
         AsyncData() => switch (location) {
-            AppRoutes.home => null,
-            _ => AppRoutes.home,
+            AppRoutes.dashboard => null,
+            _ => AppRoutes.dashboard,
           },
       };
     },
@@ -81,8 +81,8 @@ final Provider<GoRouter> appRouterProvider = Provider<GoRouter>(
         builder: (context, state) => const LoginScreen(),
       ),
       GoRoute(
-        path: AppRoutes.home,
-        builder: (context, state) => const HomeScreen(),
+        path: AppRoutes.dashboard,
+        builder: (context, state) => const DashboardScreen(),
       ),
       GoRoute(
         path: kSessionErrorRoute,

@@ -59,41 +59,57 @@ class _BrandPanel extends StatelessWidget {
           Positioned.fill(
             child: CustomPaint(painter: _GridPainter()),
           ),
-          Padding(
+          // SingleChildScrollView ocupa todo el alto disponible (gracias al
+          // Expanded padre) y permite desplazar si el contenido es mas alto.
+          SingleChildScrollView(
             padding: const EdgeInsets.all(AppSpacing.xxl),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const AppLogo(size: 60),
-                const SizedBox(height: AppSpacing.xl),
-                Text(
-                  'Inventario de\nrepuestos aeronáuticos',
-                  style: theme.textTheme.headlineLarge?.copyWith(
-                    color: Colors.white,
-                    fontSize: 38,
-                    height: 1.15,
-                  ),
+            child: ConstrainedBox(
+              // Fuerza altura minima igual al viewport para que el contenido
+              // quede centrado verticalmente cuando cabe, y haga scroll si no.
+              constraints: BoxConstraints(
+                minHeight: MediaQuery.of(context).size.height -
+                    MediaQuery.of(context).padding.top -
+                    MediaQuery.of(context).padding.bottom,
+              ),
+              child: IntrinsicHeight(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const AppLogo(size: 60),
+                    const SizedBox(height: AppSpacing.xl),
+                    Text(
+                      'Inventario de\nrepuestos aeronáuticos',
+                      style: theme.textTheme.headlineLarge?.copyWith(
+                        color: Colors.white,
+                        fontSize: 38,
+                        height: 1.15,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    Text(
+                      'Control de stock, trazabilidad de componentes y '
+                      'certificados para flotas aeronáuticas.',
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.75),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xxl),
+                    _FeatureList(theme: theme),
+                    const SizedBox(height: AppSpacing.xl),
+                    Text(
+                      'Entorno de demostración',
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.5),
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    // Espacio extra al final para que no se pegue al borde al
+                    // hacer scroll hasta abajo.
+                    const SizedBox(height: AppSpacing.xl),
+                  ],
                 ),
-                const SizedBox(height: AppSpacing.md),
-                Text(
-                  'Control de stock, trazabilidad de componentes y '
-                  'certificados para flotas aeronáuticas.',
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.75),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xxl),
-                _FeatureList(theme: theme),
-                const SizedBox(height: AppSpacing.xl),
-                Text(
-                  'Entorno de demostración',
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.5),
-                    letterSpacing: 1.2,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ],

@@ -4,7 +4,7 @@ import 'package:aviation_inventory/features/auth/presentation/providers/auth_pro
 import 'package:aviation_inventory/features/auth/presentation/screens/login_screen.dart';
 import 'package:aviation_inventory/features/auth/presentation/screens/session_error_screen.dart';
 import 'package:aviation_inventory/features/auth/presentation/screens/splash_screen.dart';
-import 'package:aviation_inventory/features/home/presentation/screens/home_screen.dart';
+import 'package:aviation_inventory/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -43,7 +43,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(LoginScreen), findsOneWidget);
-      expect(find.byType(HomeScreen), findsNothing);
+      expect(find.byType(DashboardScreen), findsNothing);
     });
 
     testWidgets('el login muestra los campos y el boton', (tester) async {
@@ -70,7 +70,7 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.byType(HomeScreen), findsOneWidget);
+      expect(find.byType(DashboardScreen), findsOneWidget);
       expect(find.byType(LoginScreen), findsNothing);
     });
   });
@@ -202,10 +202,9 @@ void main() {
       await tester.tap(find.text('Entrar'));
       await tester.pumpAndSettle();
 
-      expect(find.byType(HomeScreen), findsOneWidget);
-      expect(find.textContaining('Bienvenido'), findsOneWidget);
-      expect(find.text('Sesion activa'), findsOneWidget);
-      // El rol viene del repositorio fake.
+      expect(find.byType(DashboardScreen), findsOneWidget);
+      expect(find.textContaining('Bienvenido de vuelta'), findsOneWidget);
+      // El rol viene del repositorio fake y se muestra en la badge del panel.
       expect(find.text('Administrador'), findsWidgets);
     });
 
@@ -244,7 +243,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(repository.signInCalls, 1);
-      expect(find.byType(HomeScreen), findsOneWidget);
+      expect(find.byType(DashboardScreen), findsOneWidget);
     });
   });
 
@@ -270,7 +269,7 @@ void main() {
 
       expect(find.byType(LoginScreen), findsOneWidget);
       expect(find.text('Usuario o contrasena incorrectos.'), findsOneWidget);
-      expect(find.byType(HomeScreen), findsNothing);
+      expect(find.byType(DashboardScreen), findsNothing);
     });
 
     testWidgets('muestra el tiempo de espera si la cuenta esta bloqueada',
@@ -355,7 +354,7 @@ void main() {
       await tester.tap(find.text('Entrar'));
       await tester.pumpAndSettle();
 
-      expect(find.byType(HomeScreen), findsOneWidget);
+      expect(find.byType(DashboardScreen), findsOneWidget);
       expect(find.text('Usuario o contrasena incorrectos.'), findsNothing);
     });
   });
@@ -402,9 +401,9 @@ void main() {
       );
       await tester.tap(find.text('Entrar'));
       await tester.pumpAndSettle();
-      expect(find.byType(HomeScreen), findsOneWidget);
+      expect(find.byType(DashboardScreen), findsOneWidget);
 
-      await tester.tap(find.text('Cerrar sesion'));
+      await tester.tap(find.byIcon(Icons.logout));
       await tester.pumpAndSettle();
 
       expect(find.byType(LoginScreen), findsOneWidget);
