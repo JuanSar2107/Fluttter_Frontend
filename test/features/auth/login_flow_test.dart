@@ -165,7 +165,7 @@ void main() {
       );
     });
 
-    testWidgets('rechaza una contrasena corta', (tester) async {
+    testWidgets('rechaza contrasena vacia', (tester) async {
       final repository = await pumpApp(tester);
       await tester.pumpAndSettle();
 
@@ -173,13 +173,13 @@ void main() {
         find.widgetWithText(TextFormField, 'Usuario'),
         'admin',
       );
-      await tester.enterText(find.widgetWithText(TextFormField, 'Contrasena'), 'corta');
+      await tester.enterText(find.widgetWithText(TextFormField, 'Contrasena'), '');
       await tester.tap(find.text('Entrar'));
       await tester.pumpAndSettle();
 
       expect(repository.signInCalls, 0);
       expect(
-        find.text('La contrasena debe tener al menos 8 caracteres.'),
+        find.text('Ingresa tu contrasena.'),
         findsOneWidget,
       );
     });
@@ -197,7 +197,7 @@ void main() {
       );
       await tester.enterText(
         find.widgetWithText(TextFormField, 'Contrasena'),
-        'Aero#Parts-2026!',
+        '1234',
       );
       await tester.tap(find.text('Entrar'));
       await tester.pumpAndSettle();
@@ -218,7 +218,7 @@ void main() {
       );
       await tester.enterText(
         find.widgetWithText(TextFormField, 'Contrasena'),
-        'Aero#Parts-2026!',
+        '1234',
       );
       await tester.tap(find.text('Entrar'));
       await tester.pumpAndSettle();
@@ -237,7 +237,7 @@ void main() {
       );
       await tester.enterText(
         find.widgetWithText(TextFormField, 'Contrasena'),
-        'Aero#Parts-2026!',
+        '1234',
       );
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle();
@@ -349,7 +349,7 @@ void main() {
       repository.failWith = null;
       await tester.enterText(
         find.widgetWithText(TextFormField, 'Contrasena'),
-        'Aero#Parts-2026!',
+        '1234',
       );
       await tester.tap(find.text('Entrar'));
       await tester.pumpAndSettle();
@@ -397,7 +397,7 @@ void main() {
       );
       await tester.enterText(
         find.widgetWithText(TextFormField, 'Contrasena'),
-        'Aero#Parts-2026!',
+        '1234',
       );
       await tester.tap(find.text('Entrar'));
       await tester.pumpAndSettle();

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../../auth/domain/entities/app_user.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../auth/presentation/widgets/app_logo.dart';
+import '../../../../routing/app_router.dart';
 
 /// Pantalla principal (Dashboard) con la misma estructura visual que el panel
 /// derecho del login: centrado, ancho máximo 420px, con header de marca en móvil.
@@ -23,6 +25,12 @@ class DashboardScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const AppLogo(size: 28, showWordmark: false),
         actions: [
+          IconButton(
+            onPressed: () => context.go(AppRoutes.inventory),
+            icon: const Icon(Icons.inventory_2_outlined),
+            tooltip: 'Inventario',
+          ),
+          const SizedBox(width: AppSpacing.xs),
           if (user != null)
             IconButton(
               onPressed: () =>

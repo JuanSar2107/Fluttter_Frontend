@@ -4,8 +4,9 @@ const int kMinUsernameLength = 3;
 /// Longitud minima de la contrasena.
 ///
 /// Limite de UI, no de seguridad: no evita que alguien entre con una contrasena
-/// debil, solo que el formulario lo avise.
-const int kMinPasswordLength = 8;
+/// debil, solo que el formulario lo avise. En demo se reduce a 1 para permitir
+/// la contrasena '1234'.
+const int kMinPasswordLength = 1;
 
 /// Valida el nombre de usuario.
 ///

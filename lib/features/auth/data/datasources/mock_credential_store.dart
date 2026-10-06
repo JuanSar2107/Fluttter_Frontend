@@ -68,8 +68,8 @@ class MockCredential {
     username: 'admin',
     displayName: 'Administrador',
     role: UserRole.admin,
-    salt: 'z0xye-vQbxexaCXjU0sMJg==',
-    passwordHash: '0Fvi0iog_df-kxltEwNmWk2DhNRlrQz-K9usdccPYy4=',
+    salt: 'WC7MCuQ50EaLJPTqYQLoAg==',
+    passwordHash: 'nAODEz9hqebTB4-fS84-Y1l_yyC5pmbjufPDjXZDqs8=',
     iterations: 12000,
     keyLength: 32,
   );

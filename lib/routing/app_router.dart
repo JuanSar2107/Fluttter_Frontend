@@ -8,6 +8,7 @@ import '../features/auth/presentation/screens/login_screen.dart';
 import '../features/auth/presentation/screens/session_error_screen.dart';
 import '../features/auth/presentation/screens/splash_screen.dart';
 import '../features/dashboard/presentation/screens/dashboard_screen.dart';
+import '../features/inventory/presentation/screens/inventory_screen.dart';
 
 /// Rutas de la aplicacion.
 ///
@@ -18,6 +19,7 @@ class AppRoutes {
   static const String splash = '/';
   static const String login = '/login';
   static const String dashboard = '/dashboard';
+  static const String inventory = '/inventory';
 
   /// Ruta de error al restaurar la sesion.
   ///
@@ -66,6 +68,7 @@ final Provider<GoRouter> appRouterProvider = Provider<GoRouter>(
         // quedaria atrapado viendo "Restaurando sesion..." para siempre.
         AsyncData() => switch (location) {
             AppRoutes.dashboard => null,
+            AppRoutes.inventory => null,
             _ => AppRoutes.dashboard,
           },
       };
@@ -83,6 +86,10 @@ final Provider<GoRouter> appRouterProvider = Provider<GoRouter>(
       GoRoute(
         path: AppRoutes.dashboard,
         builder: (context, state) => const DashboardScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.inventory,
+        builder: (context, state) => const InventoryScreen(),
       ),
       GoRoute(
         path: kSessionErrorRoute,

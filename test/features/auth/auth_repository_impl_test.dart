@@ -11,7 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   // La contrasena de la demo. En un test es aceptable que aparezca en claro:
   // aqui justamente se verifica que el hash guardado corresponde a ella.
-  const demoPassword = 'Aero#Parts-2026!';
+  const demoPassword = '1234';
 
   late SecureStore store;
   late AuthLocalDataSource localDataSource;
