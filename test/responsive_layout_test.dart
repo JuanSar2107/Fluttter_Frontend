@@ -5,10 +5,15 @@ import 'package:aviation_inventory/features/dashboard/presentation/screens/dashb
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'helpers/fake_auth_repository.dart';
 
 void main() {
+  // El dashboard persiste el inventario en SharedPreferences; sin este mock
+  // `getInstance()` se queda esperando en los tests y `pumpAndSettle` expira.
+  setUp(() => SharedPreferences.setMockInitialValues(<String, Object>{}));
+
   /// Monta la app en un viewport concreto.
   ///
   /// Los tests de widgets usan 800x600 por defecto, que es mas ancho que un
@@ -120,8 +125,8 @@ void main() {
       await pumpApp(tester, size: const Size(390, 844), authenticated: true);
 
       expect(find.byType(DashboardScreen), findsOneWidget);
-      expect(find.textContaining('Bienvenido de vuelta'), findsOneWidget);
-      expect(find.text('Dashboard'), findsOneWidget);
+      expect(find.text('Inventario de repuestos pesados'), findsOneWidget);
+      expect(find.text('Añadir repuesto'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 
@@ -139,9 +144,9 @@ void main() {
       await pumpApp(tester, size: const Size(1440, 900), authenticated: true);
 
       expect(find.byType(DashboardScreen), findsOneWidget);
-      expect(find.text('Dashboard'), findsOneWidget);
-      expect(find.textContaining('Bienvenido de vuelta'), findsOneWidget);
       expect(find.text('Inventario de repuestos pesados'), findsOneWidget);
+      expect(find.text('Repuestos registrados'), findsOneWidget);
+      expect(find.text('Añadir repuesto'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   });
@@ -151,7 +156,7 @@ void main() {
       await pumpApp(tester, size: const Size(768, 1024), authenticated: true);
 
       expect(find.byType(DashboardScreen), findsOneWidget);
-      expect(find.textContaining('Bienvenido de vuelta'), findsOneWidget);
+      expect(find.text('Inventario de repuestos pesados'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   });

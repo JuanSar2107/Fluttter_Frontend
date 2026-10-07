@@ -1,7 +1,6 @@
 import 'package:aviation_inventory/app.dart';
 import 'package:aviation_inventory/features/auth/presentation/providers/auth_providers.dart';
 import 'package:aviation_inventory/features/inventory/data/datasources/heavy_part_local_data_source.dart';
-import 'package:aviation_inventory/features/inventory/presentation/providers/heavy_inventory_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';

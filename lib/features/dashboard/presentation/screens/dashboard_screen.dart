@@ -9,8 +9,15 @@ import '../../../auth/domain/entities/app_user.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../auth/presentation/widgets/app_logo.dart';
 import '../../../inventory/domain/entities/heavy_part.dart';
+import '../../../inventory/presentation/providers/category_provider.dart';
 import '../../../inventory/presentation/providers/heavy_inventory_provider.dart';
 
+/// Pantalla principal tras iniciar sesion: inventario de repuestos pesados.
+///
+/// Muestra un resumen de stock y una cuadricula de tarjetas con las opciones
+/// de anadir, editar y eliminar repuestos. El dialogo de alta incluye un
+/// selector de categoria; los usuarios administradores tienen, ademas, la
+/// opcion exclusiva de "Agregar nueva categoria" al final de la lista.
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
@@ -435,6 +442,12 @@ class _HeavyPartCard extends StatelessWidget {
                   ),
                   const Spacer(),
                   Text(
+                    'Categoría: ${part.category}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall,
+                  ),
+                  Text(
                     'Ubicación: ${part.location}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -516,6 +529,7 @@ class _AddHeavyPartDialogState extends ConsumerState<_AddHeavyPartDialog> {
   final _imagePicker = ImagePicker();
   List<String> _imagesBase64 = [];
   String _condition = 'Disponible';
+  String _category = 'General';
   String? _saveError;
   bool _saving = false;
 
@@ -532,6 +546,7 @@ class _AddHeavyPartDialogState extends ConsumerState<_AddHeavyPartDialog> {
     _serialNumberController.text = part.serialNumber;
     _imagesBase64 = [...part.imagesBase64];
     _condition = part.condition;
+    _category = part.category;
   }
 
   @override
@@ -584,6 +599,11 @@ class _AddHeavyPartDialogState extends ConsumerState<_AddHeavyPartDialog> {
                 controller: _locationController,
                 label: 'Ubicación',
                 icon: Icons.location_on_outlined,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              _CategoryDropdown(
+                initialValue: _category,
+                onChanged: (value) => setState(() => _category = value),
               ),
               _textField(
                 controller: _serialNumberController,
@@ -739,6 +759,7 @@ class _AddHeavyPartDialogState extends ConsumerState<_AddHeavyPartDialog> {
       location: _locationController.text.trim(),
       serialNumber: _serialNumberController.text.trim(),
       condition: _condition,
+      category: _category,
       imagesBase64: _imagesBase64,
     );
 
@@ -779,6 +800,213 @@ class _AddHeavyPartDialogState extends ConsumerState<_AddHeavyPartDialog> {
     } catch (error) {
       if (!mounted) return;
       setState(() => _saveError = 'No se pudieron cargar las imágenes: $error');
+    }
+  }
+}
+
+/// Selector de categoria del dialogo de repuestos.
+///
+/// Muestra las categorias existentes ordenadas alfabeticamente. Cuando el
+/// usuario es administrador, agrega al final de la lista la opcion reservada
+/// "Agregar nueva categoria...", que abre un dialogo para crearla; para el
+/// resto de usuarios esa opcion no existe.
+class _CategoryDropdown extends ConsumerStatefulWidget {
+  const _CategoryDropdown({
+    required this.initialValue,
+    required this.onChanged,
+  });
+
+  final String initialValue;
+  final ValueChanged<String> onChanged;
+
+  @override
+  ConsumerState<_CategoryDropdown> createState() => _CategoryDropdownState();
+}
+
+class _CategoryDropdownState extends ConsumerState<_CategoryDropdown> {
+  /// Valor reservado que representa la opcion "Agregar nueva categoria".
+  static const String _addNewCategoryValue = '__add_new_category__';
+
+  /// Accede al campo para restaurar o actualizar su valor visible despues de
+  /// crear (o descartar) la creacion de una categoria.
+  final GlobalKey<FormFieldState<String>> _fieldKey =
+      GlobalKey<FormFieldState<String>>();
+
+  String? _validateCategory(String? value) {
+    if (value == null || value.isEmpty || value == _addNewCategoryValue) {
+      return 'Selecciona una categoría';
+    }
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final user = ref.watch(currentUserProvider);
+    final isAdmin = user?.role == UserRole.admin;
+    final categoriesAsync = ref.watch(categoriesProvider);
+
+    return categoriesAsync.when(
+      data: (categories) {
+        final sortedCategories = [...categories]..sort((a, b) => a.compareTo(b));
+
+        // La categoria actual siempre debe estar entre las opciones, aunque
+        // haya sido eliminada de la lista mientras se editaba el repuesto.
+        if (!sortedCategories.contains(widget.initialValue)) {
+          sortedCategories.insert(0, widget.initialValue);
+        }
+
+        return _buildField(
+          decoration: const InputDecoration(
+            labelText: 'Categoría',
+            prefixIcon: Icon(Icons.category_outlined),
+          ),
+          items: [
+            for (final category in sortedCategories)
+              DropdownMenuItem<String>(
+                value: category,
+                child: Text(category),
+              ),
+            if (isAdmin)
+              const DropdownMenuItem<String>(
+                value: _addNewCategoryValue,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.add_circle_outline,
+                      size: 18,
+                      color: Colors.green,
+                    ),
+                    SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'Agregar nueva categoría...',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Colors.green,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+          onChanged: (value) {
+            if (value == _addNewCategoryValue) {
+              _showAddCategoryDialog();
+              return;
+            }
+            if (value != null) {
+              widget.onChanged(value);
+            }
+          },
+        );
+      },
+      loading: () => _buildField(
+        decoration: const InputDecoration(
+          labelText: 'Categoría',
+          prefixIcon: Icon(Icons.category_outlined),
+          hintText: 'Cargando categorías…',
+        ),
+        items: const [],
+        onChanged: null,
+      ),
+      error: (error, _) => _buildField(
+        decoration: InputDecoration(
+          labelText: 'Categoría',
+          prefixIcon: const Icon(Icons.category_outlined),
+          errorText: 'No se pudieron cargar las categorías',
+        ),
+        items: const [],
+        onChanged: null,
+      ),
+    );
+  }
+
+  DropdownButtonFormField<String> _buildField({
+    required InputDecoration decoration,
+    required List<DropdownMenuItem<String>> items,
+    required ValueChanged<String?>? onChanged,
+  }) => DropdownButtonFormField<String>(
+    key: _fieldKey,
+    initialValue: widget.initialValue,
+    // Expande el contenido a todo el ancho disponible para que la opcion
+    // "Agregar nueva categoria..." (icono + texto) no desborde el campo.
+    isExpanded: true,
+    decoration: decoration,
+    items: items,
+    onChanged: onChanged,
+    validator: _validateCategory,
+  );
+
+  /// Abre el dialogo exclusivo del administrador para crear una categoria y
+  /// actualiza el valor seleccionado del dropdown con el resultado.
+  Future<void> _showAddCategoryDialog() async {
+    final inputController = TextEditingController();
+    String? createdCategory;
+    var duplicated = false;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Nueva categoría'),
+        content: TextField(
+          controller: inputController,
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: 'Nombre de la categoría',
+            hintText: 'Ej: Neumáticos, Frenos, etc.',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              final name = inputController.text.trim();
+              if (name.isEmpty) return;
+
+              final success = await ref
+                  .read(categoryControllerProvider.notifier)
+                  .addCategory(name);
+
+              if (!dialogContext.mounted) return;
+              Navigator.pop(dialogContext);
+
+              if (success) {
+                createdCategory = name;
+              } else {
+                duplicated = true;
+              }
+            },
+            child: const Text('Crear'),
+          ),
+        ],
+      ),
+    );
+
+    if (!mounted) return;
+
+    if (createdCategory != null) {
+      final name = createdCategory!;
+      widget.onChanged(name);
+      _fieldKey.currentState?.didChange(name);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Categoría "$name" creada')),
+      );
+      return;
+    }
+
+    // Cancelado o duplicado: restaura la categoria que estaba seleccionada.
+    widget.onChanged(widget.initialValue);
+    _fieldKey.currentState?.didChange(widget.initialValue);
+    if (duplicated) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('La categoría ya existe')),
+      );
     }
   }
 }

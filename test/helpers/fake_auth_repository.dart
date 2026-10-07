@@ -40,7 +40,7 @@ class FakeAuthRepository implements AuthRepository {
 
     final now = DateTime.now();
     final session = AuthSession(
-      token: 'test-token-${signInCalls}',
+      token: 'test-token$signInCalls',
       user: AppUser(
         id: username.trim().toLowerCase(),
         username: username.trim(),

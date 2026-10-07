@@ -8,10 +8,15 @@ import 'package:aviation_inventory/features/dashboard/presentation/screens/dashb
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/fake_auth_repository.dart';
 
 void main() {
+  // El dashboard persiste el inventario en SharedPreferences; sin este mock
+  // `getInstance()` se queda esperando en los tests y `pumpAndSettle` expira.
+  setUp(() => SharedPreferences.setMockInitialValues(<String, Object>{}));
+
   /// Monta la app completa con un repositorio controlado.
   Future<FakeAuthRepository> pumpApp(
     WidgetTester tester, {
@@ -203,9 +208,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(DashboardScreen), findsOneWidget);
-      expect(find.textContaining('Bienvenido de vuelta'), findsOneWidget);
+      expect(find.text('Inventario de repuestos pesados'), findsOneWidget);
       // El rol viene del repositorio fake y se muestra en la badge del panel.
       expect(find.text('Administrador'), findsWidgets);
+      expect(find.text('Inventario de repuestos pesados'), findsOneWidget);
     });
 
     testWidgets('solo llama a signIn una vez por envio', (tester) async {

@@ -58,7 +58,7 @@ void main() {
     });
 
     test('el hash NO corresponde a otras contrasenas', () {
-      for (final wrong in ['', 'admin', 'password', 'aero', demoPassword + 'x']) {
+      for (final wrong in ['', 'admin', 'password', 'aero', '${demoPassword}x']) {
         expect(
           deriveForTest(password: wrong, credential: MockCredential.admin),
           isFalse,
