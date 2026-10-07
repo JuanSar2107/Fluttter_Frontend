@@ -1,6 +1,32 @@
 # aviation_inventory
 
-A new Flutter project.
+Aplicación Flutter para inventario de piezas de aviación.
+
+## Despliegue web con Docker y Coolify
+
+El `Dockerfile` compila la versión web de Flutter y la sirve con Nginx. En Coolify,
+crea una aplicación desde este repositorio, selecciona **Docker Compose** como
+estrategia de build y usa `docker-compose.yml` en la raíz. Configura el dominio
+para el servicio `web` en el puerto interno **8044** y despliega.
+
+## Ejecución local
+
+Requiere Docker Engine con el plugin Docker Compose y Python 3.9 o superior.
+El compose local publica la aplicación solo en `localhost`; Coolify usa el
+compose principal sin reservar un puerto del servidor.
+
+```bash
+python3 run.py up
+```
+
+Abre <http://localhost:8044>. Para elegir otro puerto local, establece `APP_PORT`
+(por ejemplo, `APP_PORT=9000 python3 run.py up`). También están disponibles:
+
+```bash
+python3 run.py logs
+python3 run.py status
+python3 run.py down
+```
 
 ## Getting Started
 
