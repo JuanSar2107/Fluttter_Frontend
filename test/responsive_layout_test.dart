@@ -51,8 +51,9 @@ void main() {
       // El logo en el formulario SI se muestra (con wordmark), eso es correcto.
     });
 
-    testWidgets('los campos son accesibles y caben en pantalla',
-        (tester) async {
+    testWidgets('los campos son accesibles y caben en pantalla', (
+      tester,
+    ) async {
       await pumpApp(tester, size: const Size(390, 844));
 
       expect(find.text('Usuario'), findsOneWidget);
@@ -85,12 +86,16 @@ void main() {
   });
 
   group('login en escritorio (1440x900)', () {
-    testWidgets('muestra el panel de marca junto al formulario',
-        (tester) async {
+    testWidgets('muestra el panel de marca junto al formulario', (
+      tester,
+    ) async {
       await pumpApp(tester, size: const Size(1440, 900));
 
       expect(find.byType(LoginScreen), findsOneWidget);
-      expect(find.text('Inventario de\nrepuestos aeronáuticos'), findsOneWidget);
+      expect(
+        find.text('Inventario de\nrepuestos aeronáuticos'),
+        findsOneWidget,
+      );
       expect(find.text('Existencias por pieza'), findsOneWidget);
       expect(find.text('Trazabilidad por lote'), findsOneWidget);
       expect(find.text('Certificados de conformidad'), findsOneWidget);
@@ -103,7 +108,9 @@ void main() {
 
       // El `ConstrainedBox` limita a 420 px: en una pantalla de 1440 el texto
       // se lee bien y no se convierte en una linea larguisima.
-      final textFieldWidth = tester.getSize(find.byType(TextFormField).first).width;
+      final textFieldWidth = tester
+          .getSize(find.byType(TextFormField).first)
+          .width;
       expect(textFieldWidth, lessThanOrEqualTo(420));
     });
   });
@@ -134,7 +141,7 @@ void main() {
       expect(find.byType(DashboardScreen), findsOneWidget);
       expect(find.text('Dashboard'), findsOneWidget);
       expect(find.textContaining('Bienvenido de vuelta'), findsOneWidget);
-      expect(find.text('Dashboard en construcción'), findsOneWidget);
+      expect(find.text('Inventario de repuestos pesados'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   });
