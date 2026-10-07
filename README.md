@@ -7,7 +7,8 @@ Aplicación Flutter para inventario de piezas de aviación.
 El `Dockerfile` compila la versión web de Flutter y la sirve con Nginx. En Coolify,
 crea una aplicación desde este repositorio, selecciona **Docker Compose** como
 estrategia de build y usa `docker-compose.yml` en la raíz. Configura el dominio
-para el servicio `web` en el puerto interno **8044** y despliega.
+para el servicio `web` en el puerto interno **80** y despliega. Coolify añadirá
+el enrutamiento del proxy para el dominio configurado.
 
 ## Ejecución local
 
