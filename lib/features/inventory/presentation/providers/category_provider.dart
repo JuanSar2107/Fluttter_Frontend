@@ -1,32 +1,31 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../data/datasources/category_data_source.dart';
+import '../../../../core/network/api_client.dart';
+import '../../data/datasources/remote_category_data_source.dart';
 
-final FutureProvider<CategoryDataSource> categoryDataSourceProvider =
-    FutureProvider<CategoryDataSource>((ref) async {
-  final preferences = await SharedPreferences.getInstance();
-  return CategoryDataSource(preferences);
+final Provider<RemoteCategoryDataSource> categoryDataSourceProvider =
+    Provider<RemoteCategoryDataSource>((ref) {
+  return RemoteCategoryDataSource(ref.watch(apiClientProvider));
 });
 
-/// Proveedor que expone la lista de categorías disponibles.
+/// Proveedor que expone la lista de categorías disponibles desde el backend.
 final categoriesProvider = FutureProvider<List<String>>((ref) async {
-  final dataSource = await ref.watch(categoryDataSourceProvider.future);
+  final dataSource = ref.watch(categoryDataSourceProvider);
   return dataSource.getCategories();
 });
 
-/// Controlador para gestionar categorías (agregar/eliminar).
+/// Controlador para gestionar categorías en el backend (agregar/eliminar).
 class CategoryController extends AsyncNotifier<void> {
   @override
   Future<void> build() async {
-    // Nada que hacer aquí, solo necesitamos el estado async para las operaciones
+    // Listo para operaciones
   }
 
-  /// Agrega una nueva categoría.
+  /// Agrega una nueva categoría en el backend.
   Future<bool> addCategory(String category) async {
     state = const AsyncLoading<void>();
     try {
-      final dataSource = await ref.read(categoryDataSourceProvider.future);
+      final dataSource = ref.read(categoryDataSourceProvider);
       final result = await dataSource.addCategory(category);
       if (result) {
         ref.invalidate(categoriesProvider);
@@ -39,11 +38,11 @@ class CategoryController extends AsyncNotifier<void> {
     }
   }
 
-  /// Elimina una categoría personalizada.
+  /// Elimina una categoría en el backend.
   Future<bool> removeCategory(String category) async {
     state = const AsyncLoading<void>();
     try {
-      final dataSource = await ref.read(categoryDataSourceProvider.future);
+      final dataSource = ref.read(categoryDataSourceProvider);
       final result = await dataSource.removeCategory(category);
       if (result) {
         ref.invalidate(categoriesProvider);

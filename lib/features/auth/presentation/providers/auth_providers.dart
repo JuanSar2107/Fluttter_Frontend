@@ -2,8 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/storage/secure_store.dart';
 import '../../../../core/errors/auth_failure.dart';
+import '../../../../core/network/api_client.dart';
 import '../../data/datasources/auth_local_data_source.dart';
-import '../../data/repositories/auth_repository_impl.dart';
+import '../../data/repositories/remote_auth_repository.dart';
 import '../../domain/entities/app_user.dart';
 import '../../domain/entities/auth_session.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -25,23 +26,11 @@ final Provider<SessionConfig> sessionConfigProvider = Provider<SessionConfig>(
   (ref) => const SessionConfig(ttl: Duration(hours: 8)),
 );
 
-/// Repositorio de autenticacion.
-///
-/// ### Cuando exista backend
-///
-/// Sustituye la implementacion de esta sola linea:
-///
-/// ```dart
-/// final authRepositoryProvider = Provider<AuthRepository>((ref) {
-///   return RemoteAuthRepository(client: ref.watch(apiClientProvider));
-/// });
-/// ```
-///
-/// Ni las pantallas ni el controlador cambian, porque ambos dependen de la
-/// interfaz `AuthRepository`.
+/// Repositorio de autenticacion conectado al backend FastAPI.
 final Provider<AuthRepository> authRepositoryProvider =
     Provider<AuthRepository>(
-  (ref) => LocalAuthRepository(
+  (ref) => RemoteAuthRepository(
+    apiClient: ref.watch(apiClientProvider),
     localDataSource: ref.watch(authLocalDataSourceProvider),
     sessionConfig: ref.watch(sessionConfigProvider),
   ),

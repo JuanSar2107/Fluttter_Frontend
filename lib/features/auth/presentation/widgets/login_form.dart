@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/auth_failure.dart';
+import '../../../../core/network/api_client.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/input_validators.dart';
@@ -168,6 +169,195 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                       )
                     : const Text('Entrar'),
               ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Center(
+              child: TextButton(
+                onPressed: _isSubmitting ? null : _showRegisterDialog,
+                child: const Text('¿No tienes cuenta? Regístrate aquí'),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.cloud_done, size: 14, color: Colors.green),
+                    const SizedBox(width: 6),
+                    Text(
+                      'API: fastapi.inventarios.proyecto.lol',
+                      style: theme.textTheme.bodySmall?.copyWith(fontSize: 11),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showRegisterDialog() async {
+    final formKey = GlobalKey<FormState>();
+    final usernameCtrl = TextEditingController();
+    final nameCtrl = TextEditingController();
+    final emailCtrl = TextEditingController();
+    final passCtrl = TextEditingController();
+    String role = 'admin';
+    bool registering = false;
+    String? regError;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogCtx) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Registrar nuevo usuario'),
+          content: SizedBox(
+            width: 400,
+            child: Form(
+              key: formKey,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextFormField(
+                      controller: usernameCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Usuario',
+                        prefixIcon: Icon(Icons.person_outline),
+                      ),
+                      validator: (v) => (v == null || v.trim().length < 3)
+                          ? 'Mínimo 3 caracteres'
+                          : null,
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    TextFormField(
+                      controller: nameCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Nombre completo',
+                        prefixIcon: Icon(Icons.badge_outlined),
+                      ),
+                      validator: (v) =>
+                          (v == null || v.trim().isEmpty) ? 'Requerido' : null,
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    TextFormField(
+                      controller: emailCtrl,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: const InputDecoration(
+                        labelText: 'Correo electrónico',
+                        prefixIcon: Icon(Icons.email_outlined),
+                      ),
+                      validator: (v) => (v == null || !v.contains('@'))
+                          ? 'Correo inválido'
+                          : null,
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    TextFormField(
+                      controller: passCtrl,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Contraseña',
+                        prefixIcon: Icon(Icons.lock_outline),
+                      ),
+                      validator: (v) => (v == null || v.length < 6)
+                          ? 'Mínimo 6 caracteres'
+                          : null,
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    DropdownButtonFormField<String>(
+                      initialValue: role,
+                      decoration: const InputDecoration(
+                        labelText: 'Rol',
+                        prefixIcon: Icon(Icons.admin_panel_settings_outlined),
+                      ),
+                      items: const [
+                        DropdownMenuItem(
+                          value: 'admin',
+                          child: Text('Administrador'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'warehouse',
+                          child: Text('Almacén'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'viewer',
+                          child: Text('Consulta'),
+                        ),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) setDialogState(() => role = val);
+                      },
+                    ),
+                    if (regError != null) ...[
+                      const SizedBox(height: AppSpacing.md),
+                      Text(
+                        regError!,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: registering ? null : () => Navigator.pop(dialogCtx),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: registering
+                  ? null
+                  : () async {
+                      if (!formKey.currentState!.validate()) return;
+                      setDialogState(() {
+                        registering = true;
+                        regError = null;
+                      });
+                      try {
+                        final apiClient = ref.read(apiClientProvider);
+                        await apiClient.post(
+                          '/api/auth/register',
+                          requiresAuth: false,
+                          body: {
+                            'username': usernameCtrl.text.trim(),
+                            'full_name': nameCtrl.text.trim(),
+                            'email': emailCtrl.text.trim(),
+                            'password': passCtrl.text,
+                            'role': role,
+                          },
+                        );
+
+                        if (dialogCtx.mounted) Navigator.pop(dialogCtx);
+
+                        _usernameController.text = usernameCtrl.text.trim();
+                        _passwordController.text = passCtrl.text;
+                        await _submit();
+                      } catch (e) {
+                        setDialogState(() {
+                          registering = false;
+                          regError = e.toString();
+                        });
+                      }
+                    },
+              child: registering
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Registrar'),
             ),
           ],
         ),
