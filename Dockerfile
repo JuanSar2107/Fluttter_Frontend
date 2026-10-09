@@ -1,6 +1,6 @@
-# Build the Flutter web app using the official Flutter Docker image
+# Build the Flutter web app using the official Flutter Docker image (cirrusci)
 # This avoids version mismatch issues and is more reliable
-FROM docker.io/library/flutter:3.27.1 AS build
+FROM cirrusci/flutter:3.27.1 AS build
 
 WORKDIR /app
 
