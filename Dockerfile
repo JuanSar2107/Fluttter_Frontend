@@ -1,19 +1,36 @@
-# Build the Flutter web app using the official Flutter Docker image (cirrusci)
-# This avoids version mismatch issues and is more reliable
-FROM cirrusci/flutter:3.27.1 AS build
+# Stage 1: Build the Flutter web application
+FROM debian:bookworm-slim AS build
+
+# Install dependencies required by Flutter
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    git \
+    unzip \
+    xz-utils \
+    zip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Clone official Flutter stable SDK
+RUN git clone https://github.com/flutter/flutter.git -b stable --depth 1 /usr/local/flutter
+ENV PATH="/usr/local/flutter/bin:/usr/local/flutter/bin/cache/dart-sdk/bin:${PATH}"
+
+# Configure git and Flutter
+RUN git config --global --add safe.directory /usr/local/flutter && \
+    flutter config --no-analytics --enable-web && \
+    flutter precache --web
 
 WORKDIR /app
 
-# Enable web support
-RUN flutter config --enable-web
-
+# Cache dependency layer
 COPY pubspec.yaml pubspec.lock ./
 RUN flutter pub get
 
+# Build the web application
 COPY . .
 RUN flutter build web --release --base-href=/
 
-# Serve the generated static site.
+# Stage 2: Serve the static files with Nginx
 FROM nginx:alpine
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
