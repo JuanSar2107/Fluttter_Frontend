@@ -9,6 +9,7 @@ class HeavyPart {
     required this.category,
     this.serialNumber = '',
     this.imagesBase64 = const [],
+    this.minStock = 1,
   });
 
   final String id;
@@ -21,6 +22,9 @@ class HeavyPart {
   final String serialNumber;
   final List<String> imagesBase64;
 
+  /// Existencia minima antes de considerar el repuesto en estado critico.
+  final int minStock;
+
   Map<String, Object?> toJson() => {
     'id': id,
     'partNumber': partNumber,
@@ -31,6 +35,7 @@ class HeavyPart {
     'category': category,
     'serialNumber': serialNumber,
     'imagesBase64': imagesBase64,
+    'minStock': minStock,
   };
 
   factory HeavyPart.fromJson(Map<String, dynamic> json) => HeavyPart(
@@ -44,6 +49,7 @@ class HeavyPart {
     serialNumber: json['serialNumber'] as String? ?? '',
     imagesBase64:
         (json['imagesBase64'] as List<dynamic>?)?.cast<String>() ?? const [],
+    minStock: json['minStock'] as int? ?? 1,
   );
 
   HeavyPart copyWith({
@@ -56,6 +62,7 @@ class HeavyPart {
     String? category,
     String? serialNumber,
     List<String>? imagesBase64,
+    int? minStock,
   }) {
     return HeavyPart(
       id: id ?? this.id,
@@ -67,6 +74,7 @@ class HeavyPart {
       category: category ?? this.category,
       serialNumber: serialNumber ?? this.serialNumber,
       imagesBase64: imagesBase64 ?? this.imagesBase64,
+      minStock: minStock ?? this.minStock,
     );
   }
 }

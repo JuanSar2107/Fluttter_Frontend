@@ -3,15 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/api_client.dart';
 import '../../data/datasources/remote_heavy_part_data_source.dart';
 import '../../domain/entities/heavy_part.dart';
+import '../../domain/entities/stock_movement.dart';
 import 'category_provider.dart';
 
 final Provider<RemoteHeavyPartDataSource> heavyPartDataSourceProvider =
     Provider<RemoteHeavyPartDataSource>((ref) {
-  return RemoteHeavyPartDataSource(
-    apiClient: ref.watch(apiClientProvider),
-    categoryDataSource: ref.watch(categoryDataSourceProvider),
-  );
-});
+      return RemoteHeavyPartDataSource(
+        apiClient: ref.watch(apiClientProvider),
+        categoryDataSource: ref.watch(categoryDataSourceProvider),
+      );
+    });
 
 final AsyncNotifierProvider<HeavyInventoryController, List<HeavyPart>>
 heavyInventoryProvider =
@@ -35,7 +36,14 @@ class HeavyInventoryController extends AsyncNotifier<List<HeavyPart>> {
 
   Future<void> updatePart(HeavyPart updatedPart) async {
     final dataSource = ref.read(heavyPartDataSourceProvider);
-    await dataSource.updatePart(updatedPart);
+    final previous = (state.value ?? const <HeavyPart>[])
+        .where((part) => part.id == updatedPart.id)
+        .firstOrNull;
+    await dataSource.updatePart(
+      updatedPart,
+      previousQuantity: previous?.quantity,
+    );
+    ref.invalidate(partMovementsProvider(updatedPart.id));
     final currentParts = state.value ?? [];
     state = AsyncData([
       for (final part in currentParts)
@@ -61,3 +69,9 @@ class HeavyInventoryController extends AsyncNotifier<List<HeavyPart>> {
     });
   }
 }
+
+/// Historial de movimientos de un repuesto (panel de detalle del dashboard).
+final partMovementsProvider = FutureProvider.autoDispose
+    .family<List<StockMovement>, String>((ref, partId) {
+      return ref.watch(heavyPartDataSourceProvider).loadMovements(partId);
+    });

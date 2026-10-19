@@ -1,6 +1,8 @@
 import 'dart:convert';
+
 import '../../../../core/network/api_client.dart';
 import '../../domain/entities/heavy_part.dart';
+import '../../domain/entities/stock_movement.dart';
 import 'remote_category_data_source.dart';
 
 class RemoteHeavyPartDataSource {
@@ -17,6 +19,7 @@ class RemoteHeavyPartDataSource {
     final partNumber = json['sku'] as String? ?? '';
     final name = json['name'] as String? ?? '';
     final quantity = (json['stock_quantity'] as num?)?.toInt() ?? 0;
+    final minStock = (json['min_stock'] as num?)?.toInt() ?? 1;
     final categoryMap = json['category'] as Map<String, dynamic>?;
     final categoryName = categoryMap?['name'] as String? ?? 'General';
 
@@ -35,7 +38,8 @@ class RemoteHeavyPartDataSource {
           location = decoded['location'] as String? ?? location;
           condition = decoded['condition'] as String? ?? condition;
           serialNumber = decoded['sn'] as String? ?? '';
-          images = (decoded['imgs'] as List<dynamic>?)?.cast<String>() ?? const [];
+          images =
+              (decoded['imgs'] as List<dynamic>?)?.cast<String>() ?? const [];
         }
       } catch (_) {
         descriptionText = rawDesc;
@@ -52,6 +56,7 @@ class RemoteHeavyPartDataSource {
       category: categoryName,
       serialNumber: serialNumber,
       imagesBase64: images,
+      minStock: minStock,
     );
   }
 
@@ -66,7 +71,9 @@ class RemoteHeavyPartDataSource {
   }
 
   Future<HeavyPart> addPart(HeavyPart part) async {
-    final categoryId = await categoryDataSource.getCategoryIdByName(part.category);
+    final categoryId = await categoryDataSource.getCategoryIdByName(
+      part.category,
+    );
 
     final metaJson = jsonEncode({
       'desc': part.description,
@@ -82,7 +89,7 @@ class RemoteHeavyPartDataSource {
       'description': metaJson,
       'category_id': ?categoryId,
       'stock_quantity': part.quantity,
-      'min_stock': 1,
+      'min_stock': part.minStock,
       'price': 0.0,
       'cost': 0.0,
       'unit': 'unidad',
@@ -92,11 +99,16 @@ class RemoteHeavyPartDataSource {
     return _fromBackendJson(created as Map<String, dynamic>);
   }
 
-  Future<void> updatePart(HeavyPart part) async {
+  /// Actualiza el repuesto. El ajuste de existencias solo se registra si la
+  /// cantidad cambio respecto a [previousQuantity], para no llenar el
+  /// historial de movimientos con ajustes vacios.
+  Future<void> updatePart(HeavyPart part, {int? previousQuantity}) async {
     final productId = int.tryParse(part.id);
     if (productId == null) return;
 
-    final categoryId = await categoryDataSource.getCategoryIdByName(part.category);
+    final categoryId = await categoryDataSource.getCategoryIdByName(
+      part.category,
+    );
 
     final metaJson = jsonEncode({
       'desc': part.description,
@@ -111,11 +123,13 @@ class RemoteHeavyPartDataSource {
       'sku': part.partNumber,
       'description': metaJson,
       'category_id': ?categoryId,
+      'min_stock': part.minStock,
     };
 
     await apiClient.put('/api/products/$productId', body: payload);
 
     // Sincronizar existencia mediante movimiento de inventario si aplica
+    if (previousQuantity == part.quantity) return;
     try {
       await apiClient.post(
         '/api/inventory/movements',
@@ -127,6 +141,27 @@ class RemoteHeavyPartDataSource {
         },
       );
     } catch (_) {}
+  }
+
+  /// Historial de movimientos de un repuesto, del mas reciente al mas antiguo.
+  Future<List<StockMovement>> loadMovements(String id) async {
+    final productId = int.tryParse(id);
+    if (productId == null) return const [];
+    final data = await apiClient.get(
+      '/api/inventory/movements',
+      queryParameters: {'product_id': productId, 'limit': 20},
+    );
+    if (data is! List) return const [];
+    final movements = data
+        .whereType<Map<String, dynamic>>()
+        .map(StockMovement.fromJson)
+        .toList();
+    movements.sort((a, b) {
+      final aDate = a.createdAt ?? DateTime(0);
+      final bDate = b.createdAt ?? DateTime(0);
+      return bDate.compareTo(aDate);
+    });
+    return movements;
   }
 
   Future<void> removePart(String id) async {
