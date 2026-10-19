@@ -2,8 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/storage/secure_store.dart';
 import '../../../../core/errors/auth_failure.dart';
+import '../../../../core/network/api_client.dart';
 import '../../data/datasources/auth_local_data_source.dart';
-import '../../data/repositories/auth_repository_impl.dart';
+import '../../data/repositories/remote_auth_repository.dart';
 import '../../domain/entities/app_user.dart';
 import '../../domain/entities/auth_session.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -25,17 +26,15 @@ final Provider<SessionConfig> sessionConfigProvider = Provider<SessionConfig>(
   (ref) => const SessionConfig(ttl: Duration(hours: 8)),
 );
 
-/// Repositorio de autenticacion LOCAL (mock de desarrollo).
+/// Repositorio de autenticacion conectado al backend FastAPI.
 ///
-/// Usa las credenciales de prueba definidas en `mock_credential_store.dart`:
-///  - usuario: `admin`
-///  - contraseña: `Aero#Parts-2026!`
-///
-/// Esto permite trabajar en la estructura visual sin depender del backend
-/// FastAPI remoto. Para produccion, cambia a `RemoteAuthRepository`.
+/// Valida las credenciales contra `https://fastapi.inventarios.proyecto.lol`
+/// (ver `ApiConfig.baseUrl`). Los usuarios se crean desde la API
+/// `/api/auth/register`.
 final Provider<AuthRepository> authRepositoryProvider =
     Provider<AuthRepository>(
-  (ref) => LocalAuthRepository(
+  (ref) => RemoteAuthRepository(
+    apiClient: ref.watch(apiClientProvider),
     localDataSource: ref.watch(authLocalDataSourceProvider),
     sessionConfig: ref.watch(sessionConfigProvider),
   ),
