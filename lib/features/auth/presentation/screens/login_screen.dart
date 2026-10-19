@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/download/file_download.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/login_form.dart';
 
@@ -222,10 +224,30 @@ class _FormPanel extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.xl),
               const LoginForm(),
+              // En la app instalada no tiene sentido ofrecer el APK.
+              if (kIsWeb) ...[
+                const SizedBox(height: AppSpacing.xl),
+                const _ApkDownloadButton(),
+              ],
             ],
           ),
         ),
       ),
+    );
+  }
+}
+/// Descarga el APK publicado en `web/downloads/` junto con la version web.
+class _ApkDownloadButton extends StatelessWidget {
+  const _ApkDownloadButton();
+
+  static const _apkUrl = 'downloads/aeroparts.apk';
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: () => downloadFile(_apkUrl, fileName: 'aeroparts.apk'),
+      icon: const Icon(Icons.android),
+      label: const Text('Descargar app Android (APK)'),
     );
   }
 }
