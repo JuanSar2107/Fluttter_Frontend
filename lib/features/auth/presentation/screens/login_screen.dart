@@ -227,7 +227,19 @@ class _FormPanel extends StatelessWidget {
               // En la app instalada no tiene sentido ofrecer el APK.
               if (kIsWeb) ...[
                 const SizedBox(height: AppSpacing.xl),
-                const _ApkDownloadButton(),
+                const _DownloadButton(
+                  url: 'downloads/aeroparts.apk',
+                  fileName: 'aeroparts.apk',
+                  icon: Icons.android,
+                  label: 'Descargar app Android (APK)',
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                const _DownloadButton(
+                  url: 'downloads/aeroparts-linux-x64.tar.gz',
+                  fileName: 'aeroparts-linux-x64.tar.gz',
+                  icon: Icons.computer,
+                  label: 'Descargar para Linux (64 bits)',
+                ),
               ],
             ],
           ),
@@ -236,18 +248,27 @@ class _FormPanel extends StatelessWidget {
     );
   }
 }
-/// Descarga el APK publicado en `web/downloads/` junto con la version web.
-class _ApkDownloadButton extends StatelessWidget {
-  const _ApkDownloadButton();
+/// Descarga un instalador publicado en `web/downloads/` junto con la version
+/// web (ver `tool/package_linux.sh` para el de Linux).
+class _DownloadButton extends StatelessWidget {
+  const _DownloadButton({
+    required this.url,
+    required this.fileName,
+    required this.icon,
+    required this.label,
+  });
 
-  static const _apkUrl = 'downloads/aeroparts.apk';
+  final String url;
+  final String fileName;
+  final IconData icon;
+  final String label;
 
   @override
   Widget build(BuildContext context) {
     return OutlinedButton.icon(
-      onPressed: () => downloadFile(_apkUrl, fileName: 'aeroparts.apk'),
-      icon: const Icon(Icons.android),
-      label: const Text('Descargar app Android (APK)'),
+      onPressed: () => downloadFile(url, fileName: fileName),
+      icon: Icon(icon),
+      label: Text(label),
     );
   }
 }
