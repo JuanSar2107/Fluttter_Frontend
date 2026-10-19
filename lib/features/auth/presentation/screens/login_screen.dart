@@ -374,7 +374,7 @@ class _FormPanelState extends ConsumerState<_FormPanel> {
               child: SingleChildScrollView(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(
-                    maxWidth: 315, // ancho de la tarjeta de referencia
+                    maxWidth: 400, // tarjeta mas grande
                   ),
                   child: _LoginCard(
                     formKey: _formKey,
@@ -387,7 +387,6 @@ class _FormPanelState extends ConsumerState<_FormPanel> {
                     onTogglePassword: () =>
                         setState(() => _obscurePassword = !_obscurePassword),
                     onSubmit: _submit,
-                    onRegister: () {},
                   ),
                 ),
               ),
@@ -413,7 +412,6 @@ class _LoginCard extends StatelessWidget {
     required this.errorMessage,
     required this.onTogglePassword,
     required this.onSubmit,
-    required this.onRegister,
   });
 
   final GlobalKey<FormState> formKey;
@@ -425,11 +423,9 @@ class _LoginCard extends StatelessWidget {
   final String? errorMessage;
   final VoidCallback onTogglePassword;
   final VoidCallback onSubmit;
-  final VoidCallback onRegister;
 
   static const double _kRadius = 11.0;
-  static const double _kInputHeight = 33.0;
-  static const double _kCardWidth = 315.0;
+  static const double _kCardWidth = 400.0;
 
   @override
   Widget build(BuildContext context) {
@@ -440,7 +436,7 @@ class _LoginCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(_kRadius),
         border: Border.all(color: _kCardBorder, width: 1),
       ),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(28, 28, 28, 26),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -450,28 +446,30 @@ class _LoginCard extends StatelessWidget {
             'Iniciar sesión',
             style: TextStyle(
               fontFamily: 'Roboto',
-              fontSize: 20,
+              fontSize: 22,
               fontWeight: FontWeight.w700,
               color: Colors.white,
+              letterSpacing: -0.2,
+              height: 1.2,
             ),
           ),
           const SizedBox(height: 10),
           // Subtítulo.
           const Text(
-            'Ingresa tus credenciales para acceder al panel de\ngestión.',
+            'Ingresa tus credenciales para acceder al panel de gestión.',
             style: TextStyle(
               fontFamily: 'Roboto',
-              fontSize: 13,
+              fontSize: 13.5,
               fontWeight: FontWeight.w400,
               color: Color(0xFFB6C0CC),
-              height: 1.3,
+              height: 1.45,
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 30),
 
-          // Campo: Correo electrónico.
-          _InputLabel(text: 'Correo electrónico'),
-          const SizedBox(height: 6),
+          // Campo: Usuario.
+          _InputLabel(text: 'Usuario'),
+          const SizedBox(height: 8),
           _EmailField(
             controller: usernameController,
             focusNode: passwordFocus,
@@ -482,7 +480,7 @@ class _LoginCard extends StatelessWidget {
 
           // Campo: Contraseña.
           _InputLabel(text: 'Contraseña'),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           _PasswordField(
             controller: passwordController,
             focusNode: passwordFocus,
@@ -491,7 +489,7 @@ class _LoginCard extends StatelessWidget {
             enabled: !isSubmitting,
             onSubmitted: (_) => onSubmit(),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 14),
 
           // Fila: Recordarme + ¿Olvidaste tu contraseña?
           Row(
@@ -540,40 +538,15 @@ class _LoginCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: 26),
 
           // Botón Entrar con spinner de 8 puntos.
           SizedBox(
             width: double.infinity,
-            height: _kInputHeight,
+            height: 46,
             child: _EnterButton(
               isSubmitting: isSubmitting,
               onPressed: isSubmitting ? null : onSubmit,
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Enlace de registro centrado.
-          Center(
-            child: RichText(
-              text: const TextSpan(
-                style: TextStyle(
-                  fontFamily: 'Roboto',
-                  fontSize: 13,
-                  fontWeight: FontWeight.w400,
-                  color: Color(0xFFA6B0C0),
-                ),
-                children: [
-                  TextSpan(text: '¿No tienes cuenta? '),
-                  TextSpan(
-                    text: 'Regístrate aquí',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w400,
-                      color: Color(0xFFD3B98E),
-                    ),
-                  ),
-                ],
-              ),
             ),
           ),
         ],
@@ -594,8 +567,10 @@ class _InputLabel extends StatelessWidget {
       style: const TextStyle(
         fontFamily: 'Roboto',
         fontSize: 13,
-        fontWeight: FontWeight.w700,
-        color: Colors.white,
+        fontWeight: FontWeight.w600,
+        color: Color(0xFFD7DFEA),
+        letterSpacing: 0.2,
+        height: 1.2,
       ),
     );
   }
@@ -624,30 +599,38 @@ class _EmailField extends StatelessWidget {
       enabled: enabled,
       autofillHints: const [AutofillHints.username],
       textInputAction: TextInputAction.next,
-      keyboardType: TextInputType.emailAddress,
+      keyboardType: TextInputType.text,
       autocorrect: false,
       enableSuggestions: false,
       style: const TextStyle(
         fontFamily: 'Roboto',
-        fontSize: 13,
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
         color: Colors.white,
+        letterSpacing: 0.1,
       ),
       decoration: InputDecoration(
-        hintText: 'ejemplo@aeroparts.com',
+        hintText: 'admin',
         hintStyle: const TextStyle(
           fontFamily: 'Roboto',
-          fontSize: 13,
-          color: Color(0xFF9BA8BA),
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
+          color: Color(0xFF8794A8),
+          letterSpacing: 0.1,
         ),
         prefixIcon: const Icon(
-          Icons.mail_outline,
-          size: 16,
+          Icons.person_outline,
+          size: 19,
           color: Color(0xFF93A2B8),
+        ),
+        prefixIconConstraints: const BoxConstraints(
+          minWidth: 46,
+          minHeight: 46,
         ),
         suffixIcon: hasError
             ? const Icon(
                 Icons.error_outline,
-                size: 16,
+                size: 18,
                 color: Color(0xFFE03131),
               )
             : null,
@@ -655,48 +638,48 @@ class _EmailField extends StatelessWidget {
         fillColor: _kInputBg,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
-          vertical: 9,
+          vertical: 15,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(7),
+          borderRadius: BorderRadius.circular(9),
           borderSide: BorderSide(
             color: hasError ? const Color(0xFFE03131) : _kInputBorderNormal,
             width: 1,
           ),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(7),
+          borderRadius: BorderRadius.circular(9),
           borderSide: BorderSide(
             color: hasError ? const Color(0xFFE03131) : _kInputBorderNormal,
             width: 1,
           ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(7),
+          borderRadius: BorderRadius.circular(9),
           borderSide: BorderSide(
             color: hasError ? const Color(0xFFE03131) : _kInputBorderFocus,
-            width: 1,
+            width: 1.5,
           ),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(7),
+          borderRadius: BorderRadius.circular(9),
           borderSide: const BorderSide(
             color: Color(0xFFE03131),
             width: 1,
           ),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(7),
+          borderRadius: BorderRadius.circular(9),
           borderSide: const BorderSide(
             color: Color(0xFFE03131),
-            width: 1,
+            width: 1.5,
           ),
         ),
         errorStyle: const TextStyle(
           fontFamily: 'Roboto',
-          fontSize: 11,
+          fontSize: 11.5,
           color: Color(0xFFE03131),
-          height: 1.2,
+          height: 1.3,
         ),
         errorMaxLines: 2,
       ),
@@ -734,20 +717,28 @@ class _PasswordField extends StatelessWidget {
       textInputAction: TextInputAction.done,
       style: const TextStyle(
         fontFamily: 'Roboto',
-        fontSize: 13,
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
         color: Colors.white,
+        letterSpacing: 0.5,
       ),
       decoration: InputDecoration(
-        hintText: '••••••••',
+        hintText: 'Ingresa tu contraseña',
         hintStyle: const TextStyle(
           fontFamily: 'Roboto',
-          fontSize: 13,
-          color: Color(0xFF9BA8BA),
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
+          color: Color(0xFF8794A8),
+          letterSpacing: 0.1,
         ),
         prefixIcon: const Icon(
           Icons.lock_outline,
-          size: 16,
+          size: 19,
           color: Color(0xFF93A2B8),
+        ),
+        prefixIconConstraints: const BoxConstraints(
+          minWidth: 46,
+          minHeight: 46,
         ),
         suffixIcon: IconButton(
           onPressed: enabled ? onToggle : null,
@@ -755,7 +746,7 @@ class _PasswordField extends StatelessWidget {
             obscurePassword
                 ? Icons.visibility_off_outlined
                 : Icons.visibility_outlined,
-            size: 16,
+            size: 19,
             color: const Color(0xFF9EACC0),
           ),
           tooltip: obscurePassword ? 'Mostrar contraseña' : 'Ocultar contraseña',
@@ -764,48 +755,48 @@ class _PasswordField extends StatelessWidget {
         fillColor: _kInputBg,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
-          vertical: 9,
+          vertical: 15,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(7),
+          borderRadius: BorderRadius.circular(9),
           borderSide: const BorderSide(
             color: _kInputBorderNormal,
             width: 1,
           ),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(7),
+          borderRadius: BorderRadius.circular(9),
           borderSide: const BorderSide(
             color: _kInputBorderNormal,
             width: 1,
           ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(7),
+          borderRadius: BorderRadius.circular(9),
           borderSide: const BorderSide(
             color: _kInputBorderFocus,
-            width: 1,
+            width: 1.5,
           ),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(7),
+          borderRadius: BorderRadius.circular(9),
           borderSide: const BorderSide(
             color: Color(0xFFE03131),
             width: 1,
           ),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(7),
+          borderRadius: BorderRadius.circular(9),
           borderSide: const BorderSide(
             color: Color(0xFFE03131),
-            width: 1,
+            width: 1.5,
           ),
         ),
         errorStyle: const TextStyle(
           fontFamily: 'Roboto',
-          fontSize: 11,
+          fontSize: 11.5,
           color: Color(0xFFE03131),
-          height: 1.2,
+          height: 1.3,
         ),
         errorMaxLines: 2,
       ),
@@ -828,7 +819,7 @@ class _EnterButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: 34,
+      height: 46,
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
@@ -837,7 +828,7 @@ class _EnterButton extends StatelessWidget {
           elevation: 0,
           shadowColor: Colors.transparent,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(9),
           ),
           padding: EdgeInsets.zero,
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -848,23 +839,26 @@ class _EnterButton extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Entrar ',
+                    'Entrando',
                     style: TextStyle(
                       fontFamily: 'Roboto',
-                      fontSize: 14,
+                      fontSize: 15,
                       fontWeight: FontWeight.w700,
+                      letterSpacing: 0.3,
                       color: Color(0xFF1F1408),
                     ),
                   ),
+                  SizedBox(width: 8),
                   _DotLoader(),
                 ],
               )
             : const Text(
-                'Entrar ',
+                'Entrar',
                 style: TextStyle(
                   fontFamily: 'Roboto',
-                  fontSize: 14,
+                  fontSize: 15,
                   fontWeight: FontWeight.w700,
+                  letterSpacing: 0.3,
                   color: Color(0xFF1F1408),
                 ),
               ),
@@ -965,16 +959,6 @@ class _FooterBar extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 18),
-            // Soporte — esquina inferior derecha.
-            const Text(
-              'Soporte',
-              style: TextStyle(
-                fontFamily: 'Roboto',
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFFF8FAFE),
-              ),
-            ),
           ],
         ),
       ),

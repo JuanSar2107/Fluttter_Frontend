@@ -27,6 +27,10 @@ final Provider<SessionConfig> sessionConfigProvider = Provider<SessionConfig>(
 );
 
 /// Repositorio de autenticacion conectado al backend FastAPI.
+///
+/// Valida las credenciales contra `https://fastapi.inventarios.proyecto.lol`
+/// (ver `ApiConfig.baseUrl`). Los usuarios se crean desde la API
+/// `/api/auth/register`.
 final Provider<AuthRepository> authRepositoryProvider =
     Provider<AuthRepository>(
   (ref) => RemoteAuthRepository(
