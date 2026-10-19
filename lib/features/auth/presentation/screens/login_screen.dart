@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/auth_failure.dart';
+import '../../../../core/utils/download/apk_download.dart';
 import '../../../../core/utils/input_validators.dart';
 import '../providers/auth_providers.dart';
 
@@ -29,7 +30,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final showBrandPanel = constraints.maxWidth >= LoginScreen.breakpoint;
+            final showBrandPanel =
+                constraints.maxWidth >= LoginScreen.breakpoint;
 
             return Row(
               children: [
@@ -97,7 +99,8 @@ class _BrandPanel extends StatelessWidget {
             padding: const EdgeInsets.all(70),
             child: ConstrainedBox(
               constraints: BoxConstraints(
-                minHeight: MediaQuery.of(context).size.height -
+                minHeight:
+                    MediaQuery.of(context).size.height -
                     MediaQuery.of(context).padding.top -
                     MediaQuery.of(context).padding.bottom,
               ),
@@ -200,11 +203,7 @@ class _FeatureItem extends StatelessWidget {
               ),
             ),
             child: Center(
-              child: Icon(
-                icon,
-                size: 15,
-                color: const Color(0xFFDEB577),
-              ),
+              child: Icon(icon, size: 15, color: const Color(0xFFDEB577)),
             ),
           ),
           const SizedBox(width: 15),
@@ -254,8 +253,7 @@ class _FeatureList extends StatelessWidget {
         _FeatureItem(
           icon: Icons.inventory_2_outlined,
           title: 'Existencias por Pieza',
-          description:
-              'Estado en tiempo real y alertas de stock bajo.',
+          description: 'Estado en tiempo real y alertas de stock bajo.',
         ),
         _FeatureItem(
           icon: Icons.qr_code_2_outlined,
@@ -265,14 +263,12 @@ class _FeatureList extends StatelessWidget {
         _FeatureItem(
           icon: Icons.verified_outlined,
           title: 'Certificados de Conformidad',
-          description:
-              'Acceso y gestión de Form 8130-3 / EASA Form 1.',
+          description: 'Acceso y gestión de Form 8130-3 / EASA Form 1.',
         ),
         _FeatureItem(
           icon: Icons.timeline_outlined,
           title: 'Historial Detallado',
-          description:
-              'Registro completo de movimientos e inspecciones.',
+          description: 'Registro completo de movimientos e inspecciones.',
         ),
       ],
     );
@@ -311,9 +307,11 @@ class _FormPanelState extends ConsumerState<_FormPanel> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _usernameFocus = FocusNode();
   final _passwordFocus = FocusNode();
 
   bool _obscurePassword = true;
+  bool _rememberMe = false;
   bool _isSubmitting = false;
   String? _errorMessage;
 
@@ -321,6 +319,7 @@ class _FormPanelState extends ConsumerState<_FormPanel> {
   void dispose() {
     _usernameController.dispose();
     _passwordController.dispose();
+    _usernameFocus.dispose();
     _passwordFocus.dispose();
     super.dispose();
   }
@@ -338,7 +337,9 @@ class _FormPanelState extends ConsumerState<_FormPanel> {
     setState(() => _isSubmitting = true);
 
     try {
-      await ref.read(authControllerProvider.notifier).signIn(
+      await ref
+          .read(authControllerProvider.notifier)
+          .signIn(
             username: _usernameController.text,
             password: _passwordController.text,
           );
@@ -372,6 +373,7 @@ class _FormPanelState extends ConsumerState<_FormPanel> {
           Expanded(
             child: Center(
               child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(
                     maxWidth: 400, // tarjeta mas grande
@@ -380,12 +382,16 @@ class _FormPanelState extends ConsumerState<_FormPanel> {
                     formKey: _formKey,
                     usernameController: _usernameController,
                     passwordController: _passwordController,
+                    usernameFocus: _usernameFocus,
                     passwordFocus: _passwordFocus,
                     obscurePassword: _obscurePassword,
+                    rememberMe: _rememberMe,
                     isSubmitting: _isSubmitting,
                     errorMessage: _errorMessage,
                     onTogglePassword: () =>
                         setState(() => _obscurePassword = !_obscurePassword),
+                    onRememberChanged: (value) =>
+                        setState(() => _rememberMe = value),
                     onSubmit: _submit,
                   ),
                 ),
@@ -406,22 +412,28 @@ class _LoginCard extends StatelessWidget {
     required this.formKey,
     required this.usernameController,
     required this.passwordController,
+    required this.usernameFocus,
     required this.passwordFocus,
     required this.obscurePassword,
+    required this.rememberMe,
     required this.isSubmitting,
     required this.errorMessage,
     required this.onTogglePassword,
+    required this.onRememberChanged,
     required this.onSubmit,
   });
 
   final GlobalKey<FormState> formKey;
   final TextEditingController usernameController;
   final TextEditingController passwordController;
+  final FocusNode usernameFocus;
   final FocusNode passwordFocus;
   final bool obscurePassword;
+  final bool rememberMe;
   final bool isSubmitting;
   final String? errorMessage;
   final VoidCallback onTogglePassword;
+  final ValueChanged<bool> onRememberChanged;
   final VoidCallback onSubmit;
 
   static const double _kRadius = 11.0;
@@ -437,119 +449,168 @@ class _LoginCard extends StatelessWidget {
         border: Border.all(color: _kCardBorder, width: 1),
       ),
       padding: const EdgeInsets.fromLTRB(28, 28, 28, 26),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Título.
-          const Text(
-            'Iniciar sesión',
-            style: TextStyle(
-              fontFamily: 'Roboto',
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-              letterSpacing: -0.2,
-              height: 1.2,
-            ),
-          ),
-          const SizedBox(height: 10),
-          // Subtítulo.
-          const Text(
-            'Ingresa tus credenciales para acceder al panel de gestión.',
-            style: TextStyle(
-              fontFamily: 'Roboto',
-              fontSize: 13.5,
-              fontWeight: FontWeight.w400,
-              color: Color(0xFFB6C0CC),
-              height: 1.45,
-            ),
-          ),
-          const SizedBox(height: 30),
-
-          // Campo: Usuario.
-          _InputLabel(text: 'Usuario'),
-          const SizedBox(height: 8),
-          _EmailField(
-            controller: usernameController,
-            focusNode: passwordFocus,
-            enabled: !isSubmitting,
-            errorMessage: errorMessage,
-          ),
-          const SizedBox(height: 20),
-
-          // Campo: Contraseña.
-          _InputLabel(text: 'Contraseña'),
-          const SizedBox(height: 8),
-          _PasswordField(
-            controller: passwordController,
-            focusNode: passwordFocus,
-            obscurePassword: obscurePassword,
-            onToggle: onTogglePassword,
-            enabled: !isSubmitting,
-            onSubmitted: (_) => onSubmit(),
-          ),
-          const SizedBox(height: 14),
-
-          // Fila: Recordarme + ¿Olvidaste tu contraseña?
-          Row(
-            children: [
-              Checkbox(
-                value: false,
-                onChanged: isSubmitting ? null : (_) {},
-                checkColor: Colors.black,
-                activeColor: _kButtonAmber,
-                side: const BorderSide(
-                  color: Color(0xFF4C5661),
-                  width: 1,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                visualDensity: VisualDensity.compact,
+      // Sin este `Form`, `formKey.currentState` es null y el envio nunca
+      // pasaba la validacion.
+      child: Form(
+        key: formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Título.
+            const Text(
+              'Iniciar sesión',
+              style: TextStyle(
+                fontFamily: 'Roboto',
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+                letterSpacing: -0.2,
+                height: 1.2,
               ),
-              const SizedBox(width: 6),
-              const Text(
-                'Recordarme',
-                style: TextStyle(
-                  fontFamily: 'Roboto',
-                  fontSize: 13,
-                  fontWeight: FontWeight.w400,
-                  color: Color(0xFFF7FBFF),
-                ),
+            ),
+            const SizedBox(height: 10),
+            // Subtítulo.
+            const Text(
+              'Ingresa tus credenciales para acceder al panel de gestión.',
+              style: TextStyle(
+                fontFamily: 'Roboto',
+                fontSize: 13.5,
+                fontWeight: FontWeight.w400,
+                color: Color(0xFFB6C0CC),
+                height: 1.45,
               ),
-              const Spacer(),
-              TextButton(
-                onPressed: isSubmitting ? null : () {},
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: const Text(
-                  '¿Olvidaste tu contraseña?',
-                  style: TextStyle(
-                    fontFamily: 'Roboto',
-                    fontSize: 13,
-                    fontWeight: FontWeight.w400,
-                    color: Color(0xFFD9BC96),
+            ),
+            const SizedBox(height: 30),
+
+            // Campo: Usuario.
+            _InputLabel(text: 'Usuario'),
+            const SizedBox(height: 8),
+            _EmailField(
+              controller: usernameController,
+              focusNode: usernameFocus,
+              nextFocus: passwordFocus,
+              enabled: !isSubmitting,
+              errorMessage: errorMessage,
+            ),
+            const SizedBox(height: 20),
+
+            // Campo: Contraseña.
+            _InputLabel(text: 'Contraseña'),
+            const SizedBox(height: 8),
+            _PasswordField(
+              controller: passwordController,
+              focusNode: passwordFocus,
+              obscurePassword: obscurePassword,
+              onToggle: onTogglePassword,
+              enabled: !isSubmitting,
+              onSubmitted: (_) => onSubmit(),
+            ),
+            if (errorMessage != null) ...[
+              const SizedBox(height: 12),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.error_outline,
+                    size: 16,
+                    color: Color(0xFFFF6B6B),
                   ),
-                ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      errorMessage!,
+                      style: const TextStyle(
+                        fontFamily: 'Roboto',
+                        fontSize: 12.5,
+                        color: Color(0xFFFF6B6B),
+                        height: 1.3,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
-          ),
-          const SizedBox(height: 26),
+            const SizedBox(height: 14),
 
-          // Botón Entrar con spinner de 8 puntos.
-          SizedBox(
-            width: double.infinity,
-            height: 46,
-            child: _EnterButton(
-              isSubmitting: isSubmitting,
-              onPressed: isSubmitting ? null : onSubmit,
+            // Fila: Recordarme + ¿Olvidaste tu contraseña?
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              runSpacing: 4,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Checkbox(
+                      value: rememberMe,
+                      onChanged: isSubmitting
+                          ? null
+                          : (value) => onRememberChanged(value ?? false),
+                      checkColor: Colors.black,
+                      activeColor: _kButtonAmber,
+                      side: const BorderSide(
+                        color: Color(0xFF4C5661),
+                        width: 1,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    const SizedBox(width: 6),
+                    const Text(
+                      'Recordarme',
+                      style: TextStyle(
+                        fontFamily: 'Roboto',
+                        fontSize: 13,
+                        fontWeight: FontWeight.w400,
+                        color: Color(0xFFF7FBFF),
+                      ),
+                    ),
+                  ],
+                ),
+                TextButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () => ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Contacta al administrador para restablecer '
+                              'tu contraseña.',
+                            ),
+                          ),
+                        ),
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: const Text(
+                    '¿Olvidaste tu contraseña?',
+                    style: TextStyle(
+                      fontFamily: 'Roboto',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400,
+                      color: Color(0xFFD9BC96),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: 26),
+
+            // Botón Entrar con spinner de 8 puntos.
+            SizedBox(
+              width: double.infinity,
+              height: 46,
+              child: _EnterButton(
+                isSubmitting: isSubmitting,
+                onPressed: isSubmitting ? null : onSubmit,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -580,12 +641,14 @@ class _EmailField extends StatelessWidget {
   const _EmailField({
     required this.controller,
     required this.focusNode,
+    required this.nextFocus,
     required this.enabled,
     this.errorMessage,
   });
 
   final TextEditingController controller;
   final FocusNode focusNode;
+  final FocusNode nextFocus;
   final bool enabled;
   final String? errorMessage;
 
@@ -594,6 +657,7 @@ class _EmailField extends StatelessWidget {
     final hasError = errorMessage != null;
 
     return TextFormField(
+      key: const Key('login-username'),
       controller: controller,
       focusNode: focusNode,
       enabled: enabled,
@@ -663,17 +727,11 @@ class _EmailField extends StatelessWidget {
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(9),
-          borderSide: const BorderSide(
-            color: Color(0xFFE03131),
-            width: 1,
-          ),
+          borderSide: const BorderSide(color: Color(0xFFE03131), width: 1),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(9),
-          borderSide: const BorderSide(
-            color: Color(0xFFE03131),
-            width: 1.5,
-          ),
+          borderSide: const BorderSide(color: Color(0xFFE03131), width: 1.5),
         ),
         errorStyle: const TextStyle(
           fontFamily: 'Roboto',
@@ -684,7 +742,7 @@ class _EmailField extends StatelessWidget {
         errorMaxLines: 2,
       ),
       validator: validateUsername,
-      onFieldSubmitted: (_) => focusNode.requestFocus(),
+      onFieldSubmitted: (_) => nextFocus.requestFocus(),
     );
   }
 }
@@ -709,6 +767,7 @@ class _PasswordField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      key: const Key('login-password'),
       controller: controller,
       focusNode: focusNode,
       enabled: enabled,
@@ -749,7 +808,9 @@ class _PasswordField extends StatelessWidget {
             size: 19,
             color: const Color(0xFF9EACC0),
           ),
-          tooltip: obscurePassword ? 'Mostrar contraseña' : 'Ocultar contraseña',
+          tooltip: obscurePassword
+              ? 'Mostrar contraseña'
+              : 'Ocultar contraseña',
         ),
         filled: true,
         fillColor: _kInputBg,
@@ -759,38 +820,23 @@ class _PasswordField extends StatelessWidget {
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(9),
-          borderSide: const BorderSide(
-            color: _kInputBorderNormal,
-            width: 1,
-          ),
+          borderSide: const BorderSide(color: _kInputBorderNormal, width: 1),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(9),
-          borderSide: const BorderSide(
-            color: _kInputBorderNormal,
-            width: 1,
-          ),
+          borderSide: const BorderSide(color: _kInputBorderNormal, width: 1),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(9),
-          borderSide: const BorderSide(
-            color: _kInputBorderFocus,
-            width: 1.5,
-          ),
+          borderSide: const BorderSide(color: _kInputBorderFocus, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(9),
-          borderSide: const BorderSide(
-            color: Color(0xFFE03131),
-            width: 1,
-          ),
+          borderSide: const BorderSide(color: Color(0xFFE03131), width: 1),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(9),
-          borderSide: const BorderSide(
-            color: Color(0xFFE03131),
-            width: 1.5,
-          ),
+          borderSide: const BorderSide(color: Color(0xFFE03131), width: 1.5),
         ),
         errorStyle: const TextStyle(
           fontFamily: 'Roboto',
@@ -807,10 +853,7 @@ class _PasswordField extends StatelessWidget {
 }
 
 class _EnterButton extends StatelessWidget {
-  const _EnterButton({
-    required this.isSubmitting,
-    required this.onPressed,
-  });
+  const _EnterButton({required this.isSubmitting, required this.onPressed});
 
   final bool isSubmitting;
   final VoidCallback? onPressed;
@@ -827,9 +870,7 @@ class _EnterButton extends StatelessWidget {
           foregroundColor: _kButtonText,
           elevation: 0,
           shadowColor: Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(9),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
           padding: EdgeInsets.zero,
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
@@ -877,7 +918,8 @@ class _DotLoader extends StatelessWidget {
       width: 16,
       height: 16,
       child: _DotLoaderPainterWidget(),
-    );  }
+    );
+  }
 }
 
 class _DotLoaderPainterWidget extends StatelessWidget {
@@ -885,10 +927,7 @@ class _DotLoaderPainterWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      painter: _DotLoaderPainter(),
-      size: const Size(16, 16),
-    );
+    return CustomPaint(painter: _DotLoaderPainter(), size: const Size(16, 16));
   }
 }
 
@@ -935,30 +974,28 @@ class _FooterBar extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             // Botón Descargar App Android (APK) — estilo ghost/contorno.
-            Container(
-              width: 177,
-              height: 28,
-              decoration: BoxDecoration(
-                color: _kApkButtonFill,
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                  color: _kApkButtonBorder,
-                  width: 1,
+            OutlinedButton.icon(
+              onPressed: () => downloadAndroidApk(context),
+              style: OutlinedButton.styleFrom(
+                backgroundColor: _kApkButtonFill,
+                foregroundColor: _kApkButtonText,
+                side: const BorderSide(color: _kApkButtonBorder),
+                minimumSize: const Size(0, 30),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
                 ),
               ),
-              child: const Center(
-                child: Text(
-                  'Descargar App Android (APK)',
-                  style: TextStyle(
-                    fontFamily: 'Roboto',
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w400,
-                    color: _kApkButtonText,
-                  ),
+              icon: const Icon(Icons.android, size: 16),
+              label: const Text(
+                'Descargar App Android (APK)',
+                style: TextStyle(
+                  fontFamily: 'Roboto',
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w400,
                 ),
               ),
             ),
-            const SizedBox(width: 18),
           ],
         ),
       ),
@@ -1015,9 +1052,7 @@ class _AirplanePainter extends StatelessWidget {
   Widget build(BuildContext context) {
     return IgnorePointer(
       child: SizedBox.expand(
-        child: CustomPaint(
-          painter: _AirplanePathPainter(),
-        ),
+        child: CustomPaint(painter: _AirplanePathPainter()),
       ),
     );
   }

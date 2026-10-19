@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'helpers/fake_auth_repository.dart';
+import 'helpers/fake_inventory.dart';
 
 void main() {
   // El dashboard persiste el inventario en SharedPreferences; sin este mock
@@ -31,7 +32,15 @@ void main() {
       initialSession: authenticated ? FakeAuthRepository.validSession() : null,
     );
     final container = ProviderContainer(
-      overrides: [authRepositoryProvider.overrideWithValue(repository)],
+      overrides: [
+        authRepositoryProvider.overrideWithValue(repository),
+        ...inventoryOverrides(
+          FakeHeavyPartDataSource([
+            samplePart(),
+            samplePart(id: '2', partNumber: 'PMP-FUEL-737', quantity: 1),
+          ]),
+        ),
+      ],
     );
     addTearDown(container.dispose);
 
@@ -51,8 +60,7 @@ void main() {
       expect(find.byType(LoginScreen), findsOneWidget);
       // El panel de marca (lado izquierdo con degradado y lista de features) NO
       // debe aparecer en movil.
-      expect(find.text('Inventario de\nrepuestos aeronáuticos'), findsNothing);
-      expect(find.text('Existencias por pieza'), findsNothing);
+      expect(find.text('Existencias por Pieza'), findsNothing);
       // El logo en el formulario SI se muestra (con wordmark), eso es correcto.
     });
 
@@ -62,7 +70,7 @@ void main() {
       await pumpApp(tester, size: const Size(390, 844));
 
       expect(find.text('Usuario'), findsOneWidget);
-      expect(find.text('Contrasena'), findsOneWidget);
+      expect(find.text('Contraseña'), findsOneWidget);
       expect(find.text('Entrar'), findsOneWidget);
 
       // Sin overflow: si hubiera, Flutter lanzaria la excepcion durante el
@@ -86,7 +94,7 @@ void main() {
       await pumpApp(tester, size: const Size(768, 1024));
 
       expect(find.byType(LoginScreen), findsOneWidget);
-      expect(find.text('Inventario de\nrepuestos aeronáuticos'), findsNothing);
+      expect(find.text('Existencias por Pieza'), findsNothing);
     });
   });
 
@@ -97,15 +105,11 @@ void main() {
       await pumpApp(tester, size: const Size(1440, 900));
 
       expect(find.byType(LoginScreen), findsOneWidget);
-      expect(
-        find.text('Inventario de\nrepuestos aeronáuticos'),
-        findsOneWidget,
-      );
-      expect(find.text('Existencias por pieza'), findsOneWidget);
-      expect(find.text('Trazabilidad por lote'), findsOneWidget);
-      expect(find.text('Certificados de conformidad'), findsOneWidget);
-      expect(find.text('Historial de movimientos'), findsOneWidget);
-      expect(find.text('Iniciar sesion'), findsOneWidget);
+      expect(find.text('Existencias por Pieza'), findsOneWidget);
+      expect(find.text('Trazabilidad Total'), findsOneWidget);
+      expect(find.text('Certificados de Conformidad'), findsOneWidget);
+      expect(find.text('Historial Detallado'), findsOneWidget);
+      expect(find.text('Iniciar sesión'), findsOneWidget);
     });
 
     testWidgets('el formulario no se estira a todo el ancho', (tester) async {
@@ -125,8 +129,8 @@ void main() {
       await pumpApp(tester, size: const Size(390, 844), authenticated: true);
 
       expect(find.byType(DashboardScreen), findsOneWidget);
-      expect(find.text('Inventario de repuestos pesados'), findsOneWidget);
-      expect(find.text('Añadir repuesto'), findsOneWidget);
+      expect(find.textContaining('Panel General de Inventario'), findsOneWidget);
+      expect(find.text('Añadir nuevo repuesto'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 
@@ -144,9 +148,11 @@ void main() {
       await pumpApp(tester, size: const Size(1440, 900), authenticated: true);
 
       expect(find.byType(DashboardScreen), findsOneWidget);
-      expect(find.text('Inventario de repuestos pesados'), findsOneWidget);
-      expect(find.text('Repuestos registrados'), findsOneWidget);
-      expect(find.text('Añadir repuesto'), findsOneWidget);
+      expect(find.textContaining('Panel General de Inventario'), findsOneWidget);
+      // En escritorio se usa la tabla con sus columnas.
+      expect(find.text('Part #'), findsOneWidget);
+      expect(find.text('CYL-HEAD-A2'), findsOneWidget);
+      expect(find.text('Añadir nuevo repuesto'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   });
@@ -156,7 +162,7 @@ void main() {
       await pumpApp(tester, size: const Size(768, 1024), authenticated: true);
 
       expect(find.byType(DashboardScreen), findsOneWidget);
-      expect(find.text('Inventario de repuestos pesados'), findsOneWidget);
+      expect(find.textContaining('Panel General de Inventario'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   });

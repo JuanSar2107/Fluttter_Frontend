@@ -11,6 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/fake_auth_repository.dart';
+import '../../helpers/fake_inventory.dart';
 
 void main() {
   // El dashboard persiste el inventario en SharedPreferences; sin este mock
@@ -24,7 +25,10 @@ void main() {
   }) async {
     final repo = repository ?? FakeAuthRepository();
     final container = ProviderContainer(
-      overrides: [authRepositoryProvider.overrideWithValue(repo)],
+      overrides: [
+        authRepositoryProvider.overrideWithValue(repo),
+        ...inventoryOverrides(),
+      ],
     );
 
     addTearDown(container.dispose);
@@ -56,7 +60,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Usuario'), findsOneWidget);
-      expect(find.text('Contrasena'), findsOneWidget);
+      expect(find.text('Contraseña'), findsOneWidget);
       expect(find.text('Entrar'), findsOneWidget);
     });
   });
@@ -130,11 +134,11 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Usuario'),
+        find.byKey(const Key('login-username')),
         'ab',
       );
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Contrasena'),
+        find.byKey(const Key('login-password')),
         'contrasena123',
       );
       await tester.tap(find.text('Entrar'));
@@ -153,11 +157,11 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Usuario'),
+        find.byKey(const Key('login-username')),
         'admin@correo',
       );
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Contrasena'),
+        find.byKey(const Key('login-password')),
         'contrasena123',
       );
       await tester.tap(find.text('Entrar'));
@@ -175,10 +179,10 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Usuario'),
+        find.byKey(const Key('login-username')),
         'admin',
       );
-      await tester.enterText(find.widgetWithText(TextFormField, 'Contrasena'), 'corta');
+      await tester.enterText(find.byKey(const Key('login-password')), 'corta');
       await tester.tap(find.text('Entrar'));
       await tester.pumpAndSettle();
 
@@ -197,21 +201,20 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Usuario'),
+        find.byKey(const Key('login-username')),
         'admin',
       );
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Contrasena'),
+        find.byKey(const Key('login-password')),
         'Aero#Parts-2026!',
       );
       await tester.tap(find.text('Entrar'));
       await tester.pumpAndSettle();
 
       expect(find.byType(DashboardScreen), findsOneWidget);
-      expect(find.text('Inventario de repuestos pesados'), findsOneWidget);
+      expect(find.textContaining('Panel General de Inventario'), findsOneWidget);
       // El rol viene del repositorio fake y se muestra en la badge del panel.
       expect(find.text('Administrador'), findsWidgets);
-      expect(find.text('Inventario de repuestos pesados'), findsOneWidget);
     });
 
     testWidgets('solo llama a signIn una vez por envio', (tester) async {
@@ -219,11 +222,11 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Usuario'),
+        find.byKey(const Key('login-username')),
         'admin',
       );
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Contrasena'),
+        find.byKey(const Key('login-password')),
         'Aero#Parts-2026!',
       );
       await tester.tap(find.text('Entrar'));
@@ -238,11 +241,11 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Usuario'),
+        find.byKey(const Key('login-username')),
         'admin',
       );
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Contrasena'),
+        find.byKey(const Key('login-password')),
         'Aero#Parts-2026!',
       );
       await tester.testTextInput.receiveAction(TextInputAction.done);
@@ -263,11 +266,11 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Usuario'),
+        find.byKey(const Key('login-username')),
         'admin',
       );
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Contrasena'),
+        find.byKey(const Key('login-password')),
         'incorrecta',
       );
       await tester.tap(find.text('Entrar'));
@@ -289,11 +292,11 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Usuario'),
+        find.byKey(const Key('login-username')),
         'admin',
       );
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Contrasena'),
+        find.byKey(const Key('login-password')),
         'incorrecta',
       );
       await tester.tap(find.text('Entrar'));
@@ -315,11 +318,11 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Usuario'),
+        find.byKey(const Key('login-username')),
         'admin',
       );
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Contrasena'),
+        find.byKey(const Key('login-password')),
         'incorrecta',
       );
       await tester.tap(find.text('Entrar'));
@@ -341,11 +344,11 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Usuario'),
+        find.byKey(const Key('login-username')),
         'admin',
       );
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Contrasena'),
+        find.byKey(const Key('login-password')),
         'incorrecta',
       );
       await tester.tap(find.text('Entrar'));
@@ -354,7 +357,7 @@ void main() {
 
       repository.failWith = null;
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Contrasena'),
+        find.byKey(const Key('login-password')),
         'Aero#Parts-2026!',
       );
       await tester.tap(find.text('Entrar'));
@@ -379,13 +382,13 @@ void main() {
 
       expect(passwordField().obscureText, isTrue);
 
-      await tester.tap(find.byIcon(Icons.visibility_outlined));
+      await tester.tap(find.byIcon(Icons.visibility_off_outlined));
       await tester.pumpAndSettle();
 
       expect(passwordField().obscureText, isFalse);
-      expect(find.byIcon(Icons.visibility_off_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.visibility_outlined), findsOneWidget);
 
-      await tester.tap(find.byIcon(Icons.visibility_off_outlined));
+      await tester.tap(find.byIcon(Icons.visibility_outlined));
       await tester.pumpAndSettle();
 
       expect(passwordField().obscureText, isTrue);
@@ -398,11 +401,11 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Usuario'),
+        find.byKey(const Key('login-username')),
         'admin',
       );
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Contrasena'),
+        find.byKey(const Key('login-password')),
         'Aero#Parts-2026!',
       );
       await tester.tap(find.text('Entrar'));

@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/fake_auth_repository.dart';
+import '../../helpers/fake_inventory.dart';
 
 AuthSession _sessionFor(UserRole role) {
   final now = DateTime.now();
@@ -31,7 +32,10 @@ Future<void> _pumpDashboard(WidgetTester tester, UserRole role) async {
 
   final repository = FakeAuthRepository(initialSession: _sessionFor(role));
   final container = ProviderContainer(
-    overrides: [authRepositoryProvider.overrideWithValue(repository)],
+    overrides: [
+      authRepositoryProvider.overrideWithValue(repository),
+      ...inventoryOverrides(),
+    ],
   );
   addTearDown(container.dispose);
 
@@ -43,7 +47,7 @@ Future<void> _pumpDashboard(WidgetTester tester, UserRole role) async {
   );
   await tester.pumpAndSettle();
 
-  await tester.tap(find.text('Añadir repuesto'));
+  await tester.tap(find.text('Añadir nuevo repuesto'));
   await tester.pumpAndSettle();
 }
 
