@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.aeroparts" "\0"
-            VALUE "FileDescription", "aviation_inventory" "\0"
+            VALUE "FileDescription", "AeroParts - Inventario de repuestos aeronauticos" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "aviation_inventory" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 com.aeroparts. All rights reserved." "\0"
             VALUE "OriginalFilename", "aviation_inventory.exe" "\0"
-            VALUE "ProductName", "aviation_inventory" "\0"
+            VALUE "ProductName", "AeroParts" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
