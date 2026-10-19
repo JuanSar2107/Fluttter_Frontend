@@ -1,11 +1,11 @@
 {
-    "name": "aviation_inventory",
-    "short_name": "aviation_inventory",
+    "name": "AeroParts",
+    "short_name": "AeroParts",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#0B2239",
+    "theme_color": "#0B2239",
+    "description": "Inventario de repuestos aeronauticos",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
