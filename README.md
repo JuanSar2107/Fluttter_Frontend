@@ -29,6 +29,22 @@ python3 run.py status
 python3 run.py down
 ```
 
+## Descargas de la app (Android, Linux y Windows)
+
+El login y el dashboard ofrecen los instaladores que haya en `web/downloads/`.
+Si falta alguno, el botón avisa de que "aún no está disponible".
+
+| Plataforma | Archivo | Cómo generarlo |
+|---|---|---|
+| Android | `aeroparts.apk` | `flutter build apk --release` y copiar `build/app/outputs/flutter-apk/app-release.apk` |
+| Linux | `aeroparts-linux-x64.tar.gz` | `bash tool/package_linux.sh` (en Linux) |
+| Windows | `aeroparts-windows-x64.zip` | `tool\package_windows.ps1` en Windows, o el workflow **Build Windows** de GitHub Actions |
+
+Flutter no compila para Windows desde Linux. Sin una máquina Windows, lanza
+el workflow desde *Actions → Build Windows → Run workflow* y copia el zip del
+artefacto a `web/downloads/`. Después recompila la web (`flutter build web`)
+para que las descargas nuevas queden incluidas.
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
