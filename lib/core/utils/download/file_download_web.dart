@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:js_interop';
 
 import 'package:web/web.dart' as web;
 
@@ -31,4 +32,20 @@ bool downloadText(
 bool printPage() {
   web.window.print();
   return true;
+}
+
+/// Comprueba con una peticion HEAD que [url] exista en el servidor.
+///
+/// Se exige ademas que no sea HTML: un servidor SPA puede responder 200 con
+/// `index.html` para rutas que no existen.
+Future<bool> fileExists(String url) async {
+  try {
+    final response = await web.window
+        .fetch(url.toJS, web.RequestInit(method: 'HEAD'))
+        .toDart;
+    final type = response.headers.get('content-type') ?? '';
+    return response.ok && !type.contains('text/html');
+  } catch (_) {
+    return false;
+  }
 }

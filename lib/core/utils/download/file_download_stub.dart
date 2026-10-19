@@ -10,3 +10,6 @@ bool downloadText(
 
 /// Sin navegador no hay dialogo de impresion.
 bool printPage() => false;
+
+/// Fuera del navegador no hay servidor web que consultar.
+Future<bool> fileExists(String url) async => false;

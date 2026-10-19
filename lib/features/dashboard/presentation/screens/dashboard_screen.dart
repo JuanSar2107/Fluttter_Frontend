@@ -372,7 +372,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           ],
                         ),
                       ),
-                      _FooterBar(compact: constraints.maxWidth < 560),
+                      _FooterBar(compact: constraints.maxWidth < 760),
                     ],
                   ),
                 ],
@@ -1936,39 +1936,27 @@ class _FooterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    height: 52,
-    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+    constraints: const BoxConstraints(minHeight: 52),
+    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 8),
     decoration: const BoxDecoration(
       color: _kPanel,
       border: Border(top: BorderSide(color: _kBorder)),
     ),
     child: Row(
       children: [
-        Expanded(
-          child: Text(
-            'Entorno de demostración $_kAppVersion',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(color: _kMuted, fontSize: 11),
-          ),
-        ),
-        OutlinedButton.icon(
-          onPressed: () => downloadAndroidApk(context),
-          style: OutlinedButton.styleFrom(
-            backgroundColor: const Color(0xFF2E2821),
-            foregroundColor: _kAmberSoft,
-            side: const BorderSide(color: Color(0xFF9A9892)),
-            minimumSize: const Size(0, 32),
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(6),
+        // En pantallas estrechas el espacio es para los botones de descarga.
+        if (!compact)
+          const Expanded(
+            child: Text(
+              'Entorno de demostración $_kAppVersion',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: _kMuted, fontSize: 11),
             ),
           ),
-          icon: const Icon(Icons.android, size: 16),
-          label: Text(
-            compact ? 'APK' : 'Descargar App Android (APK)',
-            style: const TextStyle(fontSize: 12.5, fontFamily: 'Roboto'),
-          ),
+        Flexible(
+          flex: 3,
+          child: AppDownloadButtons(compact: compact, foreground: _kAmberSoft),
         ),
         const SizedBox(width: AppSpacing.sm),
         TextButton(
