@@ -52,7 +52,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 // ============================================================================
 
 const Color _kBrandBg = Color(0xFF18293D);
-const Color _kGridLine = Color(0xFF2A3B4F);
 const Color _kFormBg = Color(0xFF101727);
 const Color _kCardBg = Color(0xFF151E2D);
 const Color _kCardBorder = Color(0xFF242B3B);
@@ -80,18 +79,29 @@ class _BrandPanel extends StatelessWidget {
       color: _kBrandBg,
       child: Stack(
         children: [
-          // Rejilla tecnica (blueprint) sobre todo el panel.
+          // Imagen de fondo: plano tecnico del avion (blueprint).
           Positioned.fill(
-            child: CustomPaint(
-              painter: _GridPainter(
-                color: _kGridLine,
-                spacing: 16.5,
-                strokeWidth: 1.0,
+            child: Image.asset(
+              'assets/images/blueprint.png',
+              fit: BoxFit.cover,
+              alignment: Alignment.center,
+            ),
+          ),
+          // Oscurecimiento sutil para que el texto de encima se lea bien.
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [
+                    _kBrandBg.withValues(alpha: 0.92),
+                    _kBrandBg.withValues(alpha: 0.55),
+                  ],
+                ),
               ),
             ),
           ),
-          // Ilustracion tecnica de avion (detras del texto).
-          Positioned.fill(child: _AirplanePainter()),
 
           SingleChildScrollView(
             padding: const EdgeInsets.all(70),
@@ -437,9 +447,12 @@ class _LoginCard extends StatelessWidget {
         border: Border.all(color: _kCardBorder, width: 1),
       ),
       padding: const EdgeInsets.fromLTRB(28, 28, 28, 26),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Form(
+        key: formKey,
+        autovalidateMode: AutovalidateMode.onUserInteraction,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Título.
           const Text(
@@ -550,6 +563,7 @@ class _LoginCard extends StatelessWidget {
             ),
           ),
         ],
+        ),
       ),
     );
   }
@@ -602,6 +616,7 @@ class _EmailField extends StatelessWidget {
       keyboardType: TextInputType.text,
       autocorrect: false,
       enableSuggestions: false,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
       style: const TextStyle(
         fontFamily: 'Roboto',
         fontSize: 14,
@@ -715,6 +730,7 @@ class _PasswordField extends StatelessWidget {
       obscureText: obscurePassword,
       autofillHints: const [AutofillHints.password],
       textInputAction: TextInputAction.done,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
       style: const TextStyle(
         fontFamily: 'Roboto',
         fontSize: 14,
@@ -966,133 +982,4 @@ class _FooterBar extends StatelessWidget {
   }
 }
 
-// ============================================================================
-// CUSTOM PAINTERS
-// ============================================================================
 
-/// Rejilla tecnica (blueprint) con linea vertical y horizontal.
-class _GridPainter extends CustomPainter {
-  const _GridPainter({
-    required this.color,
-    required this.spacing,
-    required this.strokeWidth,
-  });
-
-  final Color color;
-  final double spacing;
-  final double strokeWidth;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = strokeWidth;
-
-    final xMax = size.width.ceilToDouble();
-    final yMax = size.height.ceilToDouble();
-
-    for (var x = 0.0; x <= xMax; x += spacing) {
-      canvas.drawLine(Offset(x, 0), Offset(x, yMax), paint);
-    }
-    for (var y = 0.0; y <= yMax; y += spacing) {
-      canvas.drawLine(Offset(0, y), Offset(xMax, y), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_GridPainter old) =>
-      old.color != color ||
-      old.spacing != spacing ||
-      old.strokeWidth != strokeWidth;
-}
-
-/// Ilustracion tecnica de un avion tipo plano (fuselaje, ala, bahias de carga).
-/// Dibujado detras del texto del panel de marca.
-class _AirplanePainter extends StatelessWidget {
-  const _AirplanePainter();
-
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: SizedBox.expand(
-        child: CustomPaint(
-          painter: _AirplanePathPainter(),
-        ),
-      ),
-    );
-  }
-}
-
-class _AirplanePathPainter extends CustomPainter {
-  _AirplanePathPainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final linePaint = Paint()
-      ..color = const Color(0xFF2C3E52)
-      ..strokeWidth = 1
-      ..style = PaintingStyle.stroke;
-
-    final fillPaint = Paint()
-      ..color = const Color(0xFF57452D)
-      ..style = PaintingStyle.fill;
-
-    // Fuselaje (linea diagonal principal del avion).
-    final fuselage = Path()
-      ..moveTo(size.width * 0.06, size.height * 0.12)
-      ..lineTo(size.width * 0.42, size.height * 0.55)
-      ..lineTo(size.width * 0.52, size.height * 0.60)
-      ..lineTo(size.width * 0.08, size.height * 0.48)
-      ..close();
-    canvas.drawPath(fuselage, linePaint);
-
-    // Ala superior.
-    final ala = Path()
-      ..moveTo(size.width * 0.22, size.height * 0.38)
-      ..lineTo(size.width * 0.36, size.height * 0.30)
-      ..lineTo(size.width * 0.40, size.height * 0.36)
-      ..lineTo(size.width * 0.26, size.height * 0.44)
-      ..close();
-    canvas.drawPath(ala, fillPaint);
-    canvas.drawPath(ala, linePaint);
-
-    // Ala inferior / timones.
-    final timon = Path()
-      ..moveTo(size.width * 0.30, size.height * 0.46)
-      ..lineTo(size.width * 0.44, size.height * 0.40)
-      ..lineTo(size.width * 0.48, size.height * 0.46)
-      ..lineTo(size.width * 0.34, size.height * 0.52)
-      ..close();
-    canvas.drawPath(timon, fillPaint);
-    canvas.drawPath(timon, linePaint);
-
-    // Detalle de bahia de carga (poligono relleno).
-    final bahia = Path()
-      ..moveTo(size.width * 0.15, size.height * 0.58)
-      ..lineTo(size.width * 0.28, size.height * 0.50)
-      ..lineTo(size.width * 0.32, size.height * 0.56)
-      ..lineTo(size.width * 0.19, size.height * 0.64)
-      ..close();
-    canvas.drawPath(bahia, fillPaint);
-    canvas.drawPath(bahia, linePaint);
-
-    // Lineas de detalle del fuselaje (ventanas/paneles).
-    final detalle1 = Path()
-      ..moveTo(size.width * 0.12, size.height * 0.30)
-      ..lineTo(size.width * 0.24, size.height * 0.24);
-    canvas.drawPath(detalle1, linePaint);
-
-    final detalle2 = Path()
-      ..moveTo(size.width * 0.16, size.height * 0.42)
-      ..lineTo(size.width * 0.28, size.height * 0.36);
-    canvas.drawPath(detalle2, linePaint);
-
-    final detalle3 = Path()
-      ..moveTo(size.width * 0.20, size.height * 0.54)
-      ..lineTo(size.width * 0.32, size.height * 0.48);
-    canvas.drawPath(detalle3, linePaint);
-  }
-
-  @override
-  bool shouldRepaint(_AirplanePathPainter old) => false;
-}
