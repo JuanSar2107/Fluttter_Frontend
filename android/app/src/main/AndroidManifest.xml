@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Requerido para que la app (release) se conecte al backend en la nube. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="aviation_inventory"
         android:name="${applicationName}"
