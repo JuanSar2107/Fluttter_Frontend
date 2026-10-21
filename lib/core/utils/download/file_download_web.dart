@@ -40,11 +40,31 @@ bool printPage() {
 /// `index.html` para rutas que no existen.
 Future<bool> fileExists(String url) async {
   try {
-    final response = await web.window
+    final headResponse = await web.window
         .fetch(url.toJS, web.RequestInit(method: 'HEAD'))
         .toDart;
-    final type = response.headers.get('content-type') ?? '';
-    return response.ok && !type.contains('text/html');
+    final headType = headResponse.headers.get('content-type') ?? '';
+    if (headResponse.ok && !headType.contains('text/html')) {
+      return true;
+    }
+  } catch (_) {
+    // Algunos servidores (o dev servers) no soportan HEAD. Continuar con GET.
+  }
+
+  try {
+    // Si HEAD falla (ej. servidores de desarrollo con shelf que responden 404 a HEAD),
+    // probamos con GET abortando la peticion inmediatamente tras leer las cabeceras.
+    final controller = web.AbortController();
+    final getResponse = await web.window
+        .fetch(
+          url.toJS,
+          web.RequestInit(method: 'GET', signal: controller.signal),
+        )
+        .toDart;
+    final getType = getResponse.headers.get('content-type') ?? '';
+    final exists = getResponse.ok && !getType.contains('text/html');
+    controller.abort();
+    return exists;
   } catch (_) {
     return false;
   }
